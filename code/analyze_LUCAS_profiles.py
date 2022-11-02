@@ -6,9 +6,9 @@ import numpy as np
 import cartopy.crs as ccrs
 
 sys.path.append("../code/")
-from plot_s10_maps import SUBPLOT_KW, FIG_PARAMS, add_coast_boarders, TEXT_PARAMS
+from utils import SUBPLOT_KW, FIG_PARAMS, add_coast_boarders, TEXT_PARAMS
 
-data_path = "/work/ch0636/g300106/projects/kliwist_modelchain/data/LUCAS/"
+data_path = "../data/GERICS/"  # todo generalize for data from other modeling groups
 experiment_dictionary = {"grass": "062008", "forest": "062009", "eval": "062010"}
 
 
