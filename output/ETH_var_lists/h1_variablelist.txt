@@ -1,0 +1,24 @@
+mcdate: current date (YYYYMMDD)
+mcsec: current seconds of current date
+mdcur: current day (from base day)
+mscur: current seconds of current day
+nstep: time step
+time_bounds: history time interval endpoints
+date_written no long_name
+time_written no long_name
+area: grid cell areas
+landfrac: land fraction
+landmask: land/ocean mask (0.=ocean and 1.=land)
+pftmask: pft real/fake mask (0.=fake and 1.=real)
+nbedrock: index of shallowest bedrock layer
+FSNO: fraction of ground covered by snow
+H2OSOI: volumetric soil water (vegetated landunits only)
+QFLX_EVAP_TOT: qflx_evap_soi + qflx_evap_can + qflx_tran_veg
+QOVER: total surface runoff (includes QH2OSFC)
+QRUNOFF: total liquid runoff not including correction for land use change
+QSNOMELT: snow melt rate
+SNOWICE: snow ice
+SNOW_DEPTH: snow height of snow covered area
+TOTSOILICE: vertically summed soil cie (veg landunits only)
+TOTSOILLIQ: vertically summed soil liquid water (veg landunits only)
+TSOI: soil temperature (vegetated landunits only)

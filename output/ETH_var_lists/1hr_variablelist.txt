@@ -1,0 +1,13 @@
+time_bnds: time bounds
+rotated_pole: coordinates of the rotated North Pole
+vcoord: Height-based hybrid Gal-Chen coordinate
+height_2m: height above the surface
+height_10m: height above the surface
+height_toa: height of top of model
+wbt_13c: wet bulb temperature
+soil1_bnds: boundaries of soil layers
+SNOW_CON: convective snowfall
+SNOW_GSP: large scale snowfall
+RAIN_CON: convective rainfall
+RAIN_GSP: large scale rainfall
+TOT_PREC: total precipitation amount

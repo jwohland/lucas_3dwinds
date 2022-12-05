@@ -1,0 +1,9 @@
+time_bnds: time bounds
+rotated_pole: coordinates of the rotated North Pole
+FI: geopotential
+QV: specific humidity
+T: temperature
+U: U-component of wind
+V: V-component of wind
+W: vertical wind velocity
+RELHUM: relative humidity

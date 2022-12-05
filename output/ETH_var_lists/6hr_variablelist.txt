@@ -1,0 +1,19 @@
+time_bnds: time bounds
+rotated_pole: coordinates of the rotated North Pole
+vcoord: Height-based hybrid Gal-Chen coordinate
+height_2m: height above the surface
+height_toa: height of top of model
+wbt_13c: wet bulb temperature
+soil1_bnds: boundaries of soil layers
+T_S: soil surface temperature
+TQC: vertical integrated cloud water
+TQI: vertical integrated cloud ice
+TQV: precipitable water
+HPBL: Height of boundary layer
+U_10M: U-component of 10m wind
+V_10M: V-component of 10m wind
+AUMFL_S: averaged eastward stress
+AVMFL_S: averaged northward stress
+CLCH:   high cloud cover
+CLCL: low cloud cover
+CLCM: medium cloud cover
