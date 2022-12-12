@@ -2,7 +2,7 @@
 # 1) Copy data from Edouard to cluster
 # 2) in data/ETH/XXXX/ rename COSMO_CLM2_EU-CORDEX_XXXX_191019/ to raw_data/ where XXXX is EVAL, FOREST or GRASS
 # 3) in raw_data directories, delete years prior to 1986 and delete empty directories temp_year where year in ${year} - 2010
-
+# 4) delete 2015_old.tar
 
 # loop over experiments
 for experiment in EVAL FOREST GRASS
