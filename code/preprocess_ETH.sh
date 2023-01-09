@@ -14,7 +14,7 @@ do
   do
     echo $year
   
-    cd /net/xenon/climphys/jwohland/lucas_3dwinds/data/ETH/${experiment}/
+    cd /net/xenon/climphys/jwohland/projects/lucas_3dwinds/data/ETH/${experiment}/
     tar -xzf ./raw_data/${year}.tar ./${year}/output/6hr/
     tar -xzf ./raw_data/${year}.tar ./${year}/output/3D/
     mv ${year}/output/* ${year}
