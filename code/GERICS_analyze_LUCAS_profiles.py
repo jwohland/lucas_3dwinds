@@ -228,3 +228,5 @@ def analyze_LUCAS():
     plot_mean_change(ds_grass_minus_eval, ds_eval_minus_forest)
     # plot convergence maps
     plot_convergence_maps(ds_grass_minus_eval, ds_eval_minus_forest)
+
+# test
