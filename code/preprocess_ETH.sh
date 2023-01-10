@@ -28,8 +28,8 @@ do
     mkdir -p U_10M V_10M FI T U V RELHUM
     
     #choose variables from 6hr and store in separate files
-    cdo selvar,U_10M ${year}/6hr_${year}.nc U10M/U10M_${year}.nc
-    cdo selvar,V_10M ${year}/6hr_${year}.nc V10M/V10M_${year}.nc
+    cdo selvar,U_10M ${year}/6hr_${year}.nc U_10M/U_10M_${year}.nc
+    cdo selvar,V_10M ${year}/6hr_${year}.nc V_10M/V_10M_${year}.nc
     
     #choose variables from 3D and store in separate files
     cdo sellevel,92500,85000 -selvar,FI ${year}/3D_${year}.nc FI/FI_${year}.nc
