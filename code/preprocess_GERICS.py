@@ -45,3 +45,27 @@ for year in range(1986, 2016):
         ds_combined.to_netcdf(
             data_path + experiment + "/FI_interpolated/FI_" + str(year) + ".nc"
         )
+
+######################
+# Compute wind speeds from half-shifted wind components
+######################
+for year in range(1986, 2016):
+    for experiment in EXPERIMENTS:
+        # Open files
+        ds_u = xr.open_dataset(data_path + experiment + "/U/U_" + str(year) + ".nc")
+        ds_v = xr.open_dataset(data_path + experiment + "/V/V_" + str(year) + ".nc")
+
+        # u wind component at grid center is mean of u at its western and eastern margin
+        ds_u = ds_u.rolling({"rlon_2": 2}).mean()
+        ds_u = ds_u.rename({"rlon_2": "rlon"}).assign_coords({"rlon": ds_v.rlon})
+        # same for v with northern & southern margin
+        ds_v = ds_v.rolling({"rlat_2": 2}).mean()
+        ds_v = ds_v.rename({"rlat_2": "rlat"}).assign_coords({"rlat": ds_u.rlat})
+
+        # Compute wind speeds from components
+        ds = xr.merge([ds_u, ds_v])
+        ds["S"] = (ds.U**2 + ds.V**2)**(1./2)
+        ds.S.attrs = {"long_name": "Wind speed", "units": "m/s", "grid_mapping": "rotated_pole"}
+
+        # drop non-needed vars and save
+        ds.drop(["U", "V"]).to_netcdf(data_path + experiment + "/S/S_" + str(year) + ".nc")
