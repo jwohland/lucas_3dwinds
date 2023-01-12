@@ -13,7 +13,7 @@ do
   echo $experiment
   cd /net/xenon/climphys/jwohland/projects/lucas_3dwinds/data/GERICS/${experiment}/
   # create directory structure with one variable per folder
-  mkdir -p FIB T U V PS FI
+  mkdir -p FIB T U V PS FI FI_interpolated S
 
   for year in {1986..2015}
   do
