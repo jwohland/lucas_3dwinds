@@ -15,3 +15,9 @@ The `data` folder is structured as
 
 where institution is one of [GERICS, OUR, ETH, JLU, IDL] 
 and experiment is one of [EVAL, FOREST, GRASS].
+
+Jupyter Notebooks in 
+
+> notebooks
+
+are used for testing and as a playground. They are not part of the proper analysis.
