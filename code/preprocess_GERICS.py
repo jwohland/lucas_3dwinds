@@ -13,6 +13,7 @@ data_path = "../data/GERICS/"
 # Combine ground geopotential (FIB) with upper levels (FI) and interpolate from lev_2 to lev
 ######################
 for year in range(1986, 2016):
+    print(year)
     for experiment in EXPERIMENTS:
         # Load geopotential and drop non-needed variables
         ds = xr.open_dataset(data_path + experiment + "/FI/FI_" + str(year) + ".nc")
@@ -41,6 +42,7 @@ for year in range(1986, 2016):
 # Compute wind speeds from half-shifted wind components
 ######################
 for year in range(1986, 2016):
+    print(year)
     for experiment in EXPERIMENTS:
         # Open files
         ds_u = xr.open_dataset(data_path + experiment + "/U/U_" + str(year) + ".nc")
