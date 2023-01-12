@@ -1,5 +1,6 @@
 # Preprocessing of GERICS data, in particular handling the shifted grids in
-# lat, lon, and vertical dimension as discussion in github issue #9 and prototype in
+# rlat (V uses rlat_2), rlon (U uses rlon_2), and vertical  (FI uses lev_2)
+# dimension as discussion in github issue #9 and prototype in
 #       notebooks/3_GERICS_grid_offsets.ipynb
 # Execution of this script requires prior execution of preprocess_GERICS.sh
 
@@ -8,18 +9,8 @@ from params import *
 
 data_path = "../data/GERICS/"
 
-# Variable overview
-# 2D
-#   Already fine (i.e., rlat, rlon) : PS, FIB
-# 3D
-#   Already fine (i.e., rlat, rlon, lev): T
-#   rlat, rlon, lev_2: FI
-#   rlat, rlon_2, lev: U
-#   rlat_2, rlon, lev: V
-
-
 ######################
-# Interpolate FI to lev
+# Combine ground geopotential (FIB) with upper levels (FI) and interpolate from lev_2 to lev
 ######################
 for year in range(1986, 2016):
     for experiment in EXPERIMENTS:
