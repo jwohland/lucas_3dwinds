@@ -1,5 +1,7 @@
 # Move BCCR data from Juelich server to ETH FOG cluster and then extract from .tar archives
 
+set -e  # exit if one of the steps fails
+
 for experiment in EVAL FOREST GRASS
 do
   target_dir=../data/BCCR/${experiment}/raw_data
