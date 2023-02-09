@@ -1,4 +1,4 @@
-# To be executed after preprocess.sh
+# To be executed after preprocess_ETH.sh
 import xarray as xr
 from params import *
 
