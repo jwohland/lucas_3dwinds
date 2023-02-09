@@ -1,11 +1,16 @@
 # Create directory structure and move raw_data into correct directories
 cd ../data/JLU
 
+# Remove data outside of 01/1986 - 12/2015
+for year in {1979..1985}
+do
+  rm */*/*${year}010100-*.nc
+done
 
 
 for experiment in EVAL FOREST GRASS
 do
-  for variable in U V U_10M V_10M FI
+  for variable in U V U_10M V_10M FI S S_10M
   do
     # Create directory structure
     mkdir -p ${experiment}/${variable}
