@@ -1,7 +1,7 @@
 # Preprocessing of GERICS data, in particular handling the shifted grids in
 # rlat (V uses rlat_2), rlon (U uses rlon_2), and vertical  (FI uses lev_2)
 # dimension as discussion in github issue #9 and prototype in
-#       notebooks/3_GERICS_grid_offsets.ipynb
+#       notebooks/03_GERICS_grid_offsets.ipynb
 # Execution of this script requires prior execution of preprocess_GERICS.sh
 
 import xarray as xr
