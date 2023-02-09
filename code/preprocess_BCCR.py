@@ -26,7 +26,7 @@ for experiment in ["EVAL", "FOREST", "GRASS"]:
             xr.open_mfdataset(
                 data_path_tmp + "raw_data/" + var + "_*" + str(year) + "010100-*.nc"
             ).rename({var: "U"})
-            for var in vars
+            for var in var_names
         ]
         ds_ua = xr.merge(ds_list)
         ds_ua.to_netcdf(data_path_tmp + "U/U_" + str(year) + ".nc")
@@ -39,7 +39,7 @@ for experiment in ["EVAL", "FOREST", "GRASS"]:
             xr.open_mfdataset(
                 data_path_tmp + "raw_data/" + var + "_*" + str(year) + "010100-*.nc"
             ).rename({var: "V"})
-            for var in vars
+            for var in var_names
         ]
         ds_va = xr.merge(ds_list)
         ds_va.to_netcdf(data_path_tmp + "V/V_" + str(year) + ".nc")
@@ -64,7 +64,7 @@ for experiment in ["EVAL", "FOREST", "GRASS"]:
             xr.open_mfdataset(
                 data_path_tmp + "raw_data/" + var + "_*" + str(year) + "010100-*.nc"
             ).rename({var: "zg"})
-            for var in vars
+            for var in var_names
         ]
         ds_zg = xr.merge(ds_list)
         ds_zg.to_netcdf(data_path_tmp + "ZG/ZG_" + str(year) + ".nc")
@@ -114,7 +114,9 @@ for experiment in ["EVAL", "FOREST", "GRASS"]:
             )
 
             # s
-            ds_s = (ds_ua["ua"+var_name_ending] ** 2 + ds_va["va"+var_name_ending] ** 2) ** (1.0 / 2)
+            ds_s = (
+                ds_ua["ua" + var_name_ending] ** 2 + ds_va["va" + var_name_ending] ** 2
+            ) ** (1.0 / 2)
 
             ds_s = ds_s.to_dataset(name="S_" + folder_dictionary[var_name_ending])
             ds_s["S_" + folder_dictionary[var_name_ending]].attrs = {
