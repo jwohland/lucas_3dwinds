@@ -74,8 +74,9 @@ for experiment in ["EVAL", "FOREST", "GRASS"]:
         #####################
 
         folder_dictionary = {"100m": "100", "s": "10"}
+        var_name_endings = ["s"] # ["100m", "s"]  # 100m winds essentially not usable because FOREST 100m v component does not exist. See issue #25
 
-        for var_name_ending in ["100m", "s"]:
+        for var_name_ending in var_name_endings:
             ds_ua = xr.open_mfdataset(
                 data_path_tmp
                 + "raw_data/ua"
