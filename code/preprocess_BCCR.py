@@ -5,9 +5,18 @@ import xarray as xr
 # compute wind speeds and
 # store everything separately
 
-
 data_path = "../data/BCCR/"
 years = range(1986, 2016)
+
+
+def replace_pole(ds_list):
+    """
+    replace  faulty rotated  pole information (integer instead of string)
+    """
+    ds_correct_rotpole = xr.open_dataset("../data/BCCR/EVAL/U/U_1986.nc")
+    for ds_tmp in ds_list:
+        ds_tmp["rotated_pole"] = ds_correct_rotpole.rotated_pole
+    return ds_list
 
 
 for experiment in ["EVAL", "FOREST", "GRASS"]:
@@ -28,6 +37,8 @@ for experiment in ["EVAL", "FOREST", "GRASS"]:
             ).rename({var: "U"})
             for var in var_names
         ]
+        if experiment == "GRASS":
+            ds_list = replace_pole(ds_list)
         ds_ua = xr.merge(ds_list)
         ds_ua.to_netcdf(data_path_tmp + "U/U_" + str(year) + ".nc")
 
@@ -55,6 +66,9 @@ for experiment in ["EVAL", "FOREST", "GRASS"]:
                 ds_problem[variable] = ds_correct[variable]
             ds_list[0] = ds_problem
 
+        if experiment == "GRASS":
+            ds_list = replace_pole(ds_list)
+
         ds_va = xr.merge(ds_list)
         ds_va.to_netcdf(data_path_tmp + "V/V_" + str(year) + ".nc")
 
@@ -80,6 +94,9 @@ for experiment in ["EVAL", "FOREST", "GRASS"]:
             ).rename({var: "zg"})
             for var in var_names
         ]
+
+        if experiment == "GRASS":
+            ds_list = replace_pole(ds_list)
         ds_zg = xr.merge(ds_list)
         ds_zg.to_netcdf(data_path_tmp + "ZG/ZG_" + str(year) + ".nc")
 
