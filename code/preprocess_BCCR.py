@@ -39,7 +39,7 @@ for experiment in ["EVAL", "FOREST", "GRASS"]:
         ]
         if experiment == "GRASS":
             ds_list = replace_pole(ds_list)
-        ds_ua = xr.merge(ds_list)
+        ds_ua = xr.merge(ds_list).where(ds_ua["U"] < 1e+10)  # merge and mask really high values signifying nans as nans
         ds_ua.to_netcdf(data_path_tmp + "U/U_" + str(year) + ".nc")
 
         # va
@@ -69,7 +69,7 @@ for experiment in ["EVAL", "FOREST", "GRASS"]:
         if experiment == "GRASS":
             ds_list = replace_pole(ds_list)
 
-        ds_va = xr.merge(ds_list)
+        ds_va = xr.merge(ds_list).where(ds_va["V"] < 1e+10)  # merge and mask really high values signifying nans as nans
         ds_va.to_netcdf(data_path_tmp + "V/V_" + str(year) + ".nc")
 
         # s
