@@ -15,6 +15,8 @@ python preprocess_IDL.py
 
 bash preprocess_JLU.sh
 
+python preprocess_BCCR.py
+
 # Compute monthly aggregates
 python compute_monthly_winds.py
 
