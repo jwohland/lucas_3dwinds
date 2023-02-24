@@ -1,0 +1,15 @@
+name: /Users/jwohland/mambaforge/envs/lucas_3dwinds
+channels:
+  - defaults
+dependencies:
+  - python=3.9
+  - xarray
+  - seaborn
+  - numpy
+  - scipy
+  - matplotlib
+  - pandas
+  - dask
+  - netCDF4
+  - bottleneck
+prefix: /Users/jwohland/mambaforge/envs/lucas_3dwinds
