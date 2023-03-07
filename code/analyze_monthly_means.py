@@ -1,6 +1,7 @@
 import xarray as xr
 import pandas as pd
 import matplotlib.pyplot as plt
+plt.rc("axes.spines", top=False, right=False)
 from utils import *
 from params import approximate_heights
 import seaborn as sns
@@ -126,10 +127,24 @@ def plot_signal_decay_quantiles(relative):
     # Signal decay with height for 50th, 90th and 95th percentile
     """
     df = calculate_changes(relative=relative)
-    f, ax = plt.subplots()
-    sns.scatterplot(data=df, x="height", y="S", hue="institution", alpha=0.4)
-    ax.set_ylim(ymax=15)
-    ax.set_ylabel("GRASS - FOREST normalized with mean lowest level")
+    f, ax = plt.subplots(ncols=3, figsize=(15, 5))
+    for i, q in enumerate([0.50, 0.90, 0.95]):
+        sns.scatterplot(
+            ax=ax[i],
+            data=df.groupby(["institution", "height"]).quantile(q),
+            x="height",
+            y="S",
+            hue="institution",
+            alpha=0.8,
+        )
+        ax[i].set_title(str(int(q * 100)) + "th Percentile")
+        ax[i].set_xlim(xmax=1550, xmin=0)
+        ax[i].set_ylabel("")
+        ax[i].set_xlabel("Approximate height")
+    if relative:
+        ax[0].set_ylabel("GRASS - FOREST normalized with mean lowest level")
+    else:
+        ax[0].set_ylabel("GRASS - FOREST [m/s]")
     plt.savefig(
         plot_path(relative) + "Signal_decay_quantiles.jpeg",
         dpi=300,
@@ -137,6 +152,8 @@ def plot_signal_decay_quantiles(relative):
 
 
 plot_signal_decay_quantiles(relative=True)
+plot_signal_decay_quantiles(relative=False)
+
 
 
 def plot_signal_decay_distributions(relative):
@@ -235,7 +252,11 @@ def plot_boxplots_per_model(relative):
             axs[i].set_ylim(ymax=2.5, ymin=-0.5)
         axs[i].set_title(institution)
         axs[i].set_xlabel("Approximate height [m]")
-    axs[0].set_ylabel("GRASS - FOREST normalized with mean lowest level")
+        axs[i].axhline(y=0, ls="--", color="firebrick")
+    if relative:
+        axs[0].set_ylabel("GRASS - FOREST normalized with mean lowest level")
+    else:
+        axs[0].set_ylabel("GRASS - FOREST [m/s]")
     plt.savefig(
         plot_path(relative) + "Signal_decay_boxplot_per_model.jpeg",
         dpi=300,
