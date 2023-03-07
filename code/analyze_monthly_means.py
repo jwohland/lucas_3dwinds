@@ -234,7 +234,7 @@ def plot_boxplots_per_model(relative):
         else:
             axs[i].set_ylim(ymax=2.5, ymin=-0.5)
         axs[i].set_title(institution)
-        axs[i].set_xlable("Approximate height [m]")
+        axs[i].set_xlabel("Approximate height [m]")
     axs[0].set_ylabel("GRASS - FOREST normalized with mean lowest level")
     plt.savefig(
         plot_path(relative) + "Signal_decay_boxplot_per_model.jpeg",
