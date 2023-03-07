@@ -3,10 +3,7 @@
 # Values are taken from computation in notebooks/05_horizontal_grids.ipynb
 import yaml
 
-horizontal_ranges = {
-    "rlons": slice(-28.21, 17.99),
-    "rlats": slice(-23.21, 21.67)
-}
+horizontal_ranges = {"rlons": slice(-28.21, 17.99), "rlats": slice(-23.21, 21.67)}
 
 EXPERIMENTS = ["GRASS", "FOREST", "EVAL"]
 
