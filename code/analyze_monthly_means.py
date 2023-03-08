@@ -59,25 +59,30 @@ def calculate_changes(relative, season=None):
     return df
 
 
-# Load data into a dictionary
-s_dict = {}
-for institution in institutions:
-    print(institution)
-    ds_forest = constrain_vertical_range(
-        xr.open_dataset(data_path + "FOREST/S_" + institution + ".nc"), institution
-    )
-    ds_grass = constrain_vertical_range(
-        xr.open_dataset(data_path + "GRASS/S_" + institution + ".nc"), institution
-    )
-    s_dict[institution] = xr.concat(
-        [ds_forest, ds_grass], pd.Index(["FOREST", "GRASS"], name="experiment")
-    )
+def load_monhtly_data_dictionary():
+    # Load data into a dictionary
+    s_dict = {}
+    for institution in institutions:
+        print(institution)
+        ds_forest = constrain_vertical_range(
+            xr.open_dataset(data_path + "FOREST/S_" + institution + ".nc"), institution
+        )
+        ds_grass = constrain_vertical_range(
+            xr.open_dataset(data_path + "GRASS/S_" + institution + ".nc"), institution
+        )
+        s_dict[institution] = xr.concat(
+            [ds_forest, ds_grass], pd.Index(["FOREST", "GRASS"], name="experiment")
+        )
+    return s_dict
+
+
+
 
 
 ##########################################
 # Maps for different heights
 ##########################################
-def plot_maps_per_height():
+def plot_maps_per_height(season=None):
     for ins in institutions:
         vertical_dim = vertical_dim_dic[ins]
         N_vertical = s_dict[ins][vertical_dim].size
@@ -88,15 +93,20 @@ def plot_maps_per_height():
                 s_dict[ins]
                 .isel({vertical_dim: N})
                 .sel({"experiment": "GRASS"})["S"]
-                .mean("time")
             )
-            s_GRASS.plot(ax=ax[N, 0], levels=15, vmin=1, vmax=15)
             s_FOREST = (
                 s_dict[ins]
                 .isel({vertical_dim: N})
                 .sel({"experiment": "FOREST"})["S"]
-                .mean("time")
             )
+            if season:
+                s_GRASS = s_GRASS.groupby("time.season").mean()
+                s_FOREST = s_FOREST.groupby("time.season").mean()
+            else:
+                s_GRASS = s_GRASS.mean("time")
+                s_FOREST = s_FOREST.mean("time")
+
+            s_GRASS.plot(ax=ax[N, 0], levels=15, vmin=1, vmax=15)
             s_FOREST.plot(ax=ax[N, 1], levels=15, vmin=1, vmax=15)
             s_diff = s_GRASS - s_FOREST
             s_diff.plot(
@@ -115,13 +125,15 @@ def plot_maps_per_height():
         ax[0, 0].set_title("GRASS")
         ax[0, 1].set_title("FOREST")
         ax[0, 2].set_title("GRASS-FOREST")
+        figname = "Diff_maps_" + ins + ".jpeg"
+        if season:
+            figname = "Diff_maps_" + ins + "_" + season + ".jpeg"
         plt.savefig(
-            "../plots/exploration/absolute_differences/Diff_maps_" + ins + ".jpeg",
+            "../plots/exploration/absolute_differences/" + figname,
             dpi=300,
         )
 
 
-plot_maps_per_height()
 
 ##########################################
 # Height analysis using relative changes
@@ -168,10 +180,6 @@ def plot_signal_decay_quantiles(relative, season=None):
     )
 
 
-plot_signal_decay_quantiles(relative=True)
-plot_signal_decay_quantiles(relative=False)
-plot_signal_decay_quantiles(relative=False, season="DJF")
-
 
 def plot_signal_decay_distributions(relative):
     """
@@ -198,7 +206,6 @@ def plot_signal_decay_distributions(relative):
     )
 
 
-plot_signal_decay_distributions(relative=True)
 
 
 def plot_signal_decay_mean_loglog(relative):
@@ -254,7 +261,6 @@ def plot_signal_decay_mean_loglog(relative):
     )
 
 
-plot_signal_decay_mean_loglog(relative=True)
 
 
 def plot_boxplots_per_model(relative):
@@ -280,5 +286,19 @@ def plot_boxplots_per_model(relative):
     )
 
 
-plot_boxplots_per_model(relative=True)
-plot_boxplots_per_model(relative=False)
+
+
+if __name__ == "__main__":
+    # Execute a lot of plots
+    s_dict = load_monhtly_data_dictionary()
+    plot_maps_per_height()
+    plot_signal_decay_quantiles(relative=True)
+    plot_signal_decay_quantiles(relative=False)
+    for season in ["DJF", "MAM", "JJA", "SON"]:
+        plot_maps_per_height(season=season)
+        plot_signal_decay_quantiles(relative=False, season=season)
+    plot_signal_decay_distributions(relative=True)
+    plot_signal_decay_mean_loglog(relative=True)
+    plot_boxplots_per_model(relative=True)
+    plot_boxplots_per_model(relative=False)
+
