@@ -84,7 +84,11 @@ def plot_maps_per_height(s_dict, season=None):
         vertical_dim = vertical_dim_dic[ins]
         N_vertical = s_dict[ins][vertical_dim].size
         f, ax = plt.subplots(N_vertical, 3, figsize=(9, N_vertical * 3))
-        plt.suptitle(ins + " , vertical dimension: " + vertical_dim)
+        if season:
+            title_name = ins + ": " + season
+        else:
+            title_name = ins + ": full year"
+        plt.suptitle(title_name)
         for N in range(N_vertical):
             s_GRASS = (
                 s_dict[ins].isel({vertical_dim: N}).sel({"experiment": "GRASS"})["S"]
@@ -93,8 +97,12 @@ def plot_maps_per_height(s_dict, season=None):
                 s_dict[ins].isel({vertical_dim: N}).sel({"experiment": "FOREST"})["S"]
             )
             if season:
-                s_GRASS = s_GRASS.groupby("time.season").mean(dim="time")
-                s_FOREST = s_FOREST.groupby("time.season").mean(dim="time")
+                s_GRASS = (
+                    s_GRASS.groupby("time.season").mean(dim="time").sel(season=season)
+                )
+                s_FOREST = (
+                    s_FOREST.groupby("time.season").mean(dim="time").sel(season=season)
+                )
             else:
                 s_GRASS = s_GRASS.mean("time")
                 s_FOREST = s_FOREST.mean("time")
