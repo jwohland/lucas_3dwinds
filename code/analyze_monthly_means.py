@@ -1,6 +1,7 @@
 import xarray as xr
 import pandas as pd
 import matplotlib.pyplot as plt
+
 plt.rc("axes.spines", top=False, right=False)
 from utils import *
 from params import approximate_heights
@@ -19,17 +20,29 @@ def select_lowest_level(ds, institution):
     return ds.sel({vertical_name: min_level})
 
 
-def calculate_changes(relative):
+def calculate_changes(relative, season=None):
     """
-    Calculates changes between GRASS and FOREST
+    Calculates changes between GRASS and FOREST and returns as pandas DataFrame for plotting
+    with seaborn.
 
     If relative is set to True, changes are reported relative to the change in the lowermost level.
+
+    relative: True or False
+    season: None (i.e., year-round), "DJF", "MAM", "JJA", "SON"
     """
     df_list = []
     for institution in institutions:
-        ds_tmp = (
-            s_dict[institution].mean(dim="time").drop(["lat", "lon"], errors="ignore")
-        )
+        if season:
+            ds_tmp = (
+                s_dict[institution]
+                .groupby("time.season")
+                .mean()
+                .sel(season=season)
+                .drop("season")
+            )
+        else:
+            ds_tmp = s_dict[institution].mean(dim="time")
+        ds_tmp = ds_tmp.drop(["lat", "lon"], errors="ignore")
         diff = ds_tmp.sel({"experiment": "GRASS"}) - ds_tmp.sel(
             {"experiment": "FOREST"}
         )
@@ -122,11 +135,11 @@ def plot_path(relative):
         return "../plots/exploration/absolute_differences/"
 
 
-def plot_signal_decay_quantiles(relative):
+def plot_signal_decay_quantiles(relative, season=None):
     """
     # Signal decay with height for 50th, 90th and 95th percentile
     """
-    df = calculate_changes(relative=relative)
+    df = calculate_changes(relative=relative, season=season)
     f, ax = plt.subplots(ncols=3, figsize=(15, 5))
     for i, q in enumerate([0.50, 0.90, 0.95]):
         sns.scatterplot(
@@ -145,15 +158,19 @@ def plot_signal_decay_quantiles(relative):
         ax[0].set_ylabel("GRASS - FOREST normalized with mean lowest level")
     else:
         ax[0].set_ylabel("GRASS - FOREST [m/s]")
+    if season:
+        figname = "Signal_decay_quantiles_" + season + ".jpeg"
+    else:
+        figname = "Signal_decay_quantiles.jpeg"
     plt.savefig(
-        plot_path(relative) + "Signal_decay_quantiles.jpeg",
+        plot_path(relative) + figname,
         dpi=300,
     )
 
 
 plot_signal_decay_quantiles(relative=True)
 plot_signal_decay_quantiles(relative=False)
-
+plot_signal_decay_quantiles(relative=False, season="DJF")
 
 
 def plot_signal_decay_distributions(relative):
