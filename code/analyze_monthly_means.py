@@ -93,8 +93,8 @@ def plot_maps_per_height(s_dict, season=None):
                 s_dict[ins].isel({vertical_dim: N}).sel({"experiment": "FOREST"})["S"]
             )
             if season:
-                s_GRASS = s_GRASS.groupby("time.season").mean()
-                s_FOREST = s_FOREST.groupby("time.season").mean()
+                s_GRASS = s_GRASS.groupby("time.season").mean(dim="time")
+                s_FOREST = s_FOREST.groupby("time.season").mean(dim="time")
             else:
                 s_GRASS = s_GRASS.mean("time")
                 s_FOREST = s_FOREST.mean("time")
