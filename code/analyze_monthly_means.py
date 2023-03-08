@@ -20,7 +20,7 @@ def select_lowest_level(ds, institution):
     return ds.sel({vertical_name: min_level})
 
 
-def calculate_changes(relative, season=None):
+def calculate_changes(s_dict, relative=False, season=None):
     """
     Calculates changes between GRASS and FOREST and returns as pandas DataFrame for plotting
     with seaborn.
@@ -59,7 +59,7 @@ def calculate_changes(relative, season=None):
     return df
 
 
-def load_monhtly_data_dictionary():
+def load_monthly_data_dictionary():
     # Load data into a dictionary
     s_dict = {}
     for institution in institutions:
@@ -76,13 +76,10 @@ def load_monhtly_data_dictionary():
     return s_dict
 
 
-
-
-
 ##########################################
 # Maps for different heights
 ##########################################
-def plot_maps_per_height(season=None):
+def plot_maps_per_height(s_dict, season=None):
     for ins in institutions:
         vertical_dim = vertical_dim_dic[ins]
         N_vertical = s_dict[ins][vertical_dim].size
@@ -90,14 +87,10 @@ def plot_maps_per_height(season=None):
         plt.suptitle(ins + " , vertical dimension: " + vertical_dim)
         for N in range(N_vertical):
             s_GRASS = (
-                s_dict[ins]
-                .isel({vertical_dim: N})
-                .sel({"experiment": "GRASS"})["S"]
+                s_dict[ins].isel({vertical_dim: N}).sel({"experiment": "GRASS"})["S"]
             )
             s_FOREST = (
-                s_dict[ins]
-                .isel({vertical_dim: N})
-                .sel({"experiment": "FOREST"})["S"]
+                s_dict[ins].isel({vertical_dim: N}).sel({"experiment": "FOREST"})["S"]
             )
             if season:
                 s_GRASS = s_GRASS.groupby("time.season").mean()
@@ -134,7 +127,6 @@ def plot_maps_per_height(season=None):
         )
 
 
-
 ##########################################
 # Height analysis using relative changes
 ##########################################
@@ -147,11 +139,11 @@ def plot_path(relative):
         return "../plots/exploration/absolute_differences/"
 
 
-def plot_signal_decay_quantiles(relative, season=None):
+def plot_signal_decay_quantiles(s_dict, relative=False, season=None):
     """
     # Signal decay with height for 50th, 90th and 95th percentile
     """
-    df = calculate_changes(relative=relative, season=season)
+    df = calculate_changes(s_dict=s_dict, relative=relative, season=season)
     f, ax = plt.subplots(ncols=3, figsize=(15, 5))
     for i, q in enumerate([0.50, 0.90, 0.95]):
         sns.scatterplot(
@@ -180,12 +172,11 @@ def plot_signal_decay_quantiles(relative, season=None):
     )
 
 
-
-def plot_signal_decay_distributions(relative):
+def plot_signal_decay_distributions(s_dict, relative):
     """
     Aggregated  distributions
     """
-    df = calculate_changes(relative=relative)
+    df = calculate_changes(s_dict=s_dict, relative=relative)
     f, ax = plt.subplots(figsize=(12, 4))
     sns.violinplot(
         data=df.reset_index(),
@@ -206,10 +197,8 @@ def plot_signal_decay_distributions(relative):
     )
 
 
-
-
-def plot_signal_decay_mean_loglog(relative):
-    df = calculate_changes(relative=relative)
+def plot_signal_decay_mean_loglog(s_dict, relative=False):
+    df = calculate_changes(s_dict=s_dict, relative=relative)
     # Looking at the mean in log-log plot using relative height
     df_mean = df.groupby(["institution", "height"]).mean()
     df_mean = df_mean.reset_index(["height"])
@@ -261,10 +250,8 @@ def plot_signal_decay_mean_loglog(relative):
     )
 
 
-
-
-def plot_boxplots_per_model(relative):
-    df = calculate_changes(relative=relative)
+def plot_boxplots_per_model(s_dict, relative):
+    df = calculate_changes(s_dict=s_dict, relative=relative)
     f, axs = plt.subplots(ncols=len(institutions), sharey=True, figsize=(14, 4))
     for i, institution in enumerate(institutions):
         df_tmp = df[df.institution == institution]
@@ -286,19 +273,16 @@ def plot_boxplots_per_model(relative):
     )
 
 
-
-
 if __name__ == "__main__":
     # Execute a lot of plots
-    s_dict = load_monhtly_data_dictionary()
-    plot_maps_per_height()
-    plot_signal_decay_quantiles(relative=True)
-    plot_signal_decay_quantiles(relative=False)
+    s_dict = load_monthly_data_dictionary()
+    plot_maps_per_height(s_dict)
+    plot_signal_decay_quantiles(s_dict, relative=True)
+    plot_signal_decay_quantiles(s_dict, relative=False)
     for season in ["DJF", "MAM", "JJA", "SON"]:
-        plot_maps_per_height(season=season)
-        plot_signal_decay_quantiles(relative=False, season=season)
-    plot_signal_decay_distributions(relative=True)
-    plot_signal_decay_mean_loglog(relative=True)
-    plot_boxplots_per_model(relative=True)
-    plot_boxplots_per_model(relative=False)
-
+        plot_maps_per_height(s_dict, season=season)
+        plot_signal_decay_quantiles(s_dict, relative=False, season=season)
+    plot_signal_decay_distributions(s_dict, relative=True)
+    plot_signal_decay_mean_loglog(s_dict, relative=True)
+    plot_boxplots_per_model(s_dict, relative=True)
+    plot_boxplots_per_model(s_dict, relative=False)
