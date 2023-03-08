@@ -258,8 +258,8 @@ def plot_signal_decay_mean_loglog(s_dict, relative=False):
     )
 
 
-def plot_boxplots_per_model(s_dict, relative):
-    df = calculate_changes(s_dict=s_dict, relative=relative)
+def plot_boxplots_per_model(s_dict, relative, season=None):
+    df = calculate_changes(s_dict=s_dict, relative=relative, season=season)
     f, axs = plt.subplots(ncols=len(institutions), sharey=True, figsize=(14, 4))
     for i, institution in enumerate(institutions):
         df_tmp = df[df.institution == institution]
@@ -275,8 +275,11 @@ def plot_boxplots_per_model(s_dict, relative):
         axs[0].set_ylabel("GRASS - FOREST normalized with mean lowest level")
     else:
         axs[0].set_ylabel("GRASS - FOREST [m/s]")
+    figname = "Signal_decay_boxplot_per_model.jpeg"
+    if season:
+        figname = "Signal_decay_boxplot_per_model_" + season + ".jpeg"
     plt.savefig(
-        plot_path(relative) + "Signal_decay_boxplot_per_model.jpeg",
+        plot_path(relative) + figname,
         dpi=300,
     )
 
@@ -287,10 +290,11 @@ if __name__ == "__main__":
     plot_maps_per_height(s_dict)
     plot_signal_decay_quantiles(s_dict, relative=True)
     plot_signal_decay_quantiles(s_dict, relative=False)
-    for season in ["DJF", "MAM", "JJA", "SON"]:
-        plot_maps_per_height(s_dict, season=season)
-        plot_signal_decay_quantiles(s_dict, relative=False, season=season)
     plot_signal_decay_distributions(s_dict, relative=True)
     plot_signal_decay_mean_loglog(s_dict, relative=True)
     plot_boxplots_per_model(s_dict, relative=True)
     plot_boxplots_per_model(s_dict, relative=False)
+    for season in ["DJF", "MAM", "JJA", "SON"]:
+        plot_maps_per_height(s_dict, season=season)
+        plot_signal_decay_quantiles(s_dict, relative=False, season=season)
+        plot_boxplots_per_model(s_dict, relative=False, season=season)
