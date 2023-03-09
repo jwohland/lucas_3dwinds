@@ -19,5 +19,7 @@ python preprocess_BCCR.py
 
 # Compute monthly aggregates
 python compute_monthly_winds.py
+python compute_sub-daily_focusareas.py
 
 # Analysis
+python analyze_monthly_winds.py

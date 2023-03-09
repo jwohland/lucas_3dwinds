@@ -51,6 +51,7 @@ def constrain_vertical_range(ds, institution):
         ds = ds.reindex(vertical_dim=list(reversed(ds[vertical_dim])))
     return ds
 
+
 def get_focus_area(ds, area_name):
     assert area_name in ["Sweden", "Germany", "Spain"]
     if area_name == "Sweden":
