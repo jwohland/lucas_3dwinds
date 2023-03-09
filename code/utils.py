@@ -50,3 +50,16 @@ def constrain_vertical_range(ds, institution):
         vertical_dim = vertical_dim_dic[institution]
         ds = ds.reindex(vertical_dim=list(reversed(ds[vertical_dim])))
     return ds
+
+def get_focus_area(ds, area_name):
+    assert area_name in ["Sweden", "Germany", "Spain"]
+    if area_name == "Sweden":
+        rlat = slice(7, 8)
+        rlon = slice(-3, -2)
+    elif area_name == "Germany":
+        rlon = slice(-6.5, -5.5)
+        rlat = slice(1, 2)
+    elif area_name == "Spain":
+        rlon = slice(-18, -17)
+        rlat = slice(-8, -7)
+    return ds.sel(rlon=rlon, rlat=rlat).mean(dim=["rlat", "rlon"])
