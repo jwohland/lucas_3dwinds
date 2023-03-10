@@ -5,16 +5,9 @@ import matplotlib.pyplot as plt
 
 plt.rc("axes.spines", top=False, right=False)
 from utils import *
-from params import approximate_heights
+
 import seaborn as sns
 
-
-def replace_vertical_coordinate(ds, ins):
-    initial_name = vertical_dim_dic[ins]
-    ds[initial_name] = [approximate_heights[ins][x] for x in ds[initial_name].values]
-    ds = ds.rename({initial_name: "approximate height"})
-    ds["approximate height"].attrs = {"unit": "m"}
-    return ds
 
 
 data_path = "../data/sub-daily/"

@@ -1,6 +1,8 @@
 import cartopy.crs as ccrs
 import cartopy.feature as cf
 import numpy as np
+from params import approximate_heights
+
 
 SUBPLOT_KW = {
     "subplot_kw": {"projection": ccrs.PlateCarree(), "extent": [-15, 50, 35, 70]}
@@ -64,3 +66,11 @@ def get_focus_area(ds, area_name):
         rlon = slice(-18, -17)
         rlat = slice(-8, -7)
     return ds.sel(rlon=rlon, rlat=rlat).mean(dim=["rlat", "rlon"])
+
+
+def replace_vertical_coordinate(ds, ins):
+    initial_name = vertical_dim_dic[ins]
+    ds[initial_name] = [approximate_heights[ins][x] for x in ds[initial_name].values]
+    ds = ds.rename({initial_name: "approximate height"})
+    ds["approximate height"].attrs = {"unit": "m"}
+    return ds
