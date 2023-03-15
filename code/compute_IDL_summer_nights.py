@@ -9,7 +9,7 @@ def select_summer_nights(ds):
     ds = ds.sel(time=ds["time.month"] == 7)
     return ds
 
-
+# Compute and save July midnight mean wind speeds
 for experiment in ["FOREST", "GRASS"]:
     ds = xr.open_mfdataset(
         data_dir + "IDL/" + experiment + "/S/*.nc", preprocess=select_summer_nights
@@ -18,3 +18,4 @@ for experiment in ["FOREST", "GRASS"]:
     ds.load()
     print("loaded")
     ds.to_netcdf(ds.to_netcdf(target_dir + experiment + "/S_IDL_summernights.nc"))
+
