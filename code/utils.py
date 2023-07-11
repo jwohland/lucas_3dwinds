@@ -2,6 +2,9 @@ import cartopy.crs as ccrs
 import cartopy.feature as cf
 import numpy as np
 from params import approximate_heights
+import xarray as xr
+import matplotlib.pyplot as plt
+import matplotlib as mpl
 
 
 SUBPLOT_KW = {
@@ -74,3 +77,58 @@ def replace_vertical_coordinate(ds, ins):
     ds = ds.rename({initial_name: "approximate height"})
     ds["approximate height"].attrs = {"unit": "m"}
     return ds
+
+
+def compute_land_sea_mask(other=np.nan, save=True, plot=True):
+    """
+    Based on the land area fraction file provided by IDL, a land-sea mask is computed by iteratively
+    excluding regions that are not relevant for this analysis.
+    """
+    ds_mask = xr.open_dataset(
+        "../data/IDL/sflt_EUR-44_ECMWF-ERAINT_LUCAS_EVAL_r1i1p1_IDL_WRFV381D_v1_fx.nc"
+    )
+    ds_mask = ds_mask["sflt"]
+    ds_mask = ds_mask.where(ds_mask > 50, other).where(
+        ds_mask < 50, 1
+    )  # change to binary mask: 1 is land, other is not land
+    ds_mask = ds_mask.where(ds_mask.rlat > -17, other)  # exclude northern Africa
+    ds_mask = ds_mask.where(((ds_mask.rlat > -12) | (ds_mask.rlon > -5)), other)  # exclude northern Africa
+    ds_mask = ds_mask.where(
+        ((ds_mask.rlat < 13) | (ds_mask.rlon > -5)), other
+    )  # exclude Iceland
+    ds_mask = ds_mask.where((ds_mask.rlon < 10), other)  # exclude Eastern end
+    if save:
+        ds_mask.to_netcdf("../output/land_sea_mask.nc")
+    if plot:
+        ds_mask.plot(add_colorbar=False, cmap=mpl.colormaps["Oranges"])
+        plt.xlim(xmin=-23, xmax=11)
+        plt.ylim(ymin=-15, ymax=22)
+        plt.title("Land mask used for signal decay over Europe")
+        plt.savefig("../plots/land_sea_mask.jpeg", dpi=300)
+    return ds_mask
+
+
+def restrict_to_land(ds):
+    """
+    Exclude data over oceans and restrict to domain of interest
+
+    This function is only demonstrated to work for IDL and GERICS data because of the different grid sizes!
+    """
+    try:
+        land_sea_mask = xr.open_dataarray("../output/land_sea_mask.nc")
+    except:
+        land_sea_mask = compute_land_sea_mask()
+
+    # GERICS simulations have larger outputs and need to be cropped
+    if ds.rlat.size > 104:
+        ds = ds.isel(rlon=slice(8, -15), rlat=slice(8, -10))
+
+    # Grids are typically off by a small margin. Use coordinates of the provided dataset
+    # also for the land sea if the deviation is less than 5% of the grid spacing
+    if np.abs((land_sea_mask.rlat.values - ds.rlat.values).mean()) < 0.05 * 0.44:
+        land_sea_mask["rlat"] = ds.rlat
+        land_sea_mask["rlon"] = ds.rlon
+        ds_masked = (land_sea_mask * ds["S"]).to_dataset(name="S")
+        return ds_masked
+    else:
+        print("Grids of land sea mask and wind data do not match")
