@@ -97,7 +97,7 @@ plot_mean_std_heights(
 # ETH todo this does not work well yet. Oro grid appears different. Only few points overlap!!
 ds_zg = xr.open_dataset("../data/ETH/GRASS/FI/FI_2000.nc").drop("rotated_pole")
 ds_oro = xr.open_dataset(
-    "../data/IDL/orog_EUR-44_ECMWF-ERAINT_LUCAS_EVAL_r1i1p1_IDL_WRFV381D_v1_fx.nc"
+    "../data/ETH/orog_EUR-44_ERAint_COSMO_CLM2_EU-CORDEX_EVAL_191019_r0i0p0_CLMcom-ETH-CCLM-CLM5.0_x0n1v1_fx.nc"
 ).drop("rotated_pole")
 # I.e., assuming all use the same orography
 for ds_tmp in [ds_zg, ds_oro]:
