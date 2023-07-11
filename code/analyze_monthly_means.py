@@ -40,11 +40,7 @@ def calculate_changes(s_dict, relative=False, season=None, onshore=False):
             ds_tmp = restrict_to_land(ds_tmp)
         if season:
             ds_tmp = (
-                ds_tmp
-                .groupby("time.season")
-                .mean()
-                .sel(season=season)
-                .drop("season")
+                ds_tmp.groupby("time.season").mean().sel(season=season).drop("season")
             )
         else:
             ds_tmp = ds_tmp.mean(dim="time")
@@ -153,13 +149,17 @@ def plot_path(relative):
         return "../plots/exploration/absolute_differences/"
 
 
-def plot_signal_decay_quantiles(s_dict, relative=False, season=None, onshore=False):
+def plot_signal_decay_quantiles(
+    s_dict, relative=False, season=None, onshore=False, quantiles=[0.50, 0.90, 0.95]
+):
     """
     # Signal decay with height for 50th, 90th and 95th percentile
     """
-    df = calculate_changes(s_dict=s_dict, relative=relative, season=season, onshore=onshore)
+    df = calculate_changes(
+        s_dict=s_dict, relative=relative, season=season, onshore=onshore
+    )
     f, ax = plt.subplots(ncols=3, figsize=(15, 5))
-    for i, q in enumerate([0.50, 0.90, 0.95]):
+    for i, q in enumerate(quantiles):
         sns.scatterplot(
             ax=ax[i],
             data=df.groupby(["institution", "height"]).quantile(q),
