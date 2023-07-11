@@ -20,7 +20,7 @@ def select_lowest_level(ds, institution):
     return ds.sel({vertical_name: min_level})
 
 
-def calculate_changes(s_dict, relative=False, season=None):
+def calculate_changes(s_dict, relative=False, season=None, onshore=False):
     """
     Calculates changes between GRASS and FOREST and returns as pandas DataFrame for plotting
     with seaborn.
@@ -31,17 +31,23 @@ def calculate_changes(s_dict, relative=False, season=None):
     season: None (i.e., year-round), "DJF", "MAM", "JJA", "SON"
     """
     df_list = []
-    for institution in institutions:
+    tmp_institutions = institutions
+    if onshore:
+        tmp_institutions = ["IDL", "GERICS"]
+    for institution in tmp_institutions:
+        ds_tmp = s_dict[institution]
+        if onshore:
+            ds_tmp = restrict_to_land(ds_tmp)
         if season:
             ds_tmp = (
-                s_dict[institution]
+                ds_tmp
                 .groupby("time.season")
                 .mean()
                 .sel(season=season)
                 .drop("season")
             )
         else:
-            ds_tmp = s_dict[institution].mean(dim="time")
+            ds_tmp = ds_tmp.mean(dim="time")
         ds_tmp = ds_tmp.drop(["lat", "lon"], errors="ignore")
         diff = ds_tmp.sel({"experiment": "GRASS"}) - ds_tmp.sel(
             {"experiment": "FOREST"}
@@ -147,11 +153,11 @@ def plot_path(relative):
         return "../plots/exploration/absolute_differences/"
 
 
-def plot_signal_decay_quantiles(s_dict, relative=False, season=None):
+def plot_signal_decay_quantiles(s_dict, relative=False, season=None, onshore=False):
     """
     # Signal decay with height for 50th, 90th and 95th percentile
     """
-    df = calculate_changes(s_dict=s_dict, relative=relative, season=season)
+    df = calculate_changes(s_dict=s_dict, relative=relative, season=season, onshore=onshore)
     f, ax = plt.subplots(ncols=3, figsize=(15, 5))
     for i, q in enumerate([0.50, 0.90, 0.95]):
         sns.scatterplot(
@@ -170,21 +176,22 @@ def plot_signal_decay_quantiles(s_dict, relative=False, season=None):
         ax[0].set_ylabel("GRASS - FOREST normalized with mean lowest level")
     else:
         ax[0].set_ylabel("GRASS - FOREST [m/s]")
+    figname = "Signal_decay_quantiles"
     if season:
-        figname = "Signal_decay_quantiles_" + season + ".jpeg"
-    else:
-        figname = "Signal_decay_quantiles.jpeg"
+        figname += "_" + season
+    if onshore:
+        figname += "_onshore"
     plt.savefig(
-        plot_path(relative) + figname,
+        plot_path(relative) + figname + ".jpeg",
         dpi=300,
     )
 
 
-def plot_signal_decay_distributions(s_dict, relative):
+def plot_signal_decay_distributions(s_dict, relative, onshore=False):
     """
     Aggregated  distributions
     """
-    df = calculate_changes(s_dict=s_dict, relative=relative)
+    df = calculate_changes(s_dict=s_dict, relative=relative, onshore=True)
     f, ax = plt.subplots(figsize=(12, 4))
     sns.violinplot(
         data=df.reset_index(),
@@ -199,14 +206,17 @@ def plot_signal_decay_distributions(s_dict, relative):
     ax.set_ylim(ymax=5, ymin=-1.0)
     ax.set_xlim(xmax=15.5, xmin=-1.5)
     ax.set_ylabel("GRASS - FOREST normalized with mean lowest level")
+    figname = "Signal_decay_distributions"
+    if onshore:
+        figname += "_onshore"
     plt.savefig(
-        plot_path(relative) + "Signal_decay_distributions.jpeg",
+        plot_path(relative) + figname + ".jpeg",
         dpi=300,
     )
 
 
-def plot_signal_decay_mean_loglog(s_dict, relative=False):
-    df = calculate_changes(s_dict=s_dict, relative=relative)
+def plot_signal_decay_mean_loglog(s_dict, relative=False, onshore=False):
+    df = calculate_changes(s_dict=s_dict, relative=relative, onshore=onshore)
     # Looking at the mean in log-log plot using relative height
     df_mean = df.groupby(["institution", "height"]).mean()
     df_mean = df_mean.reset_index(["height"])
@@ -252,8 +262,11 @@ def plot_signal_decay_mean_loglog(s_dict, relative=False):
     # ax.set_yscale("log")
 
     ax.set_ylabel("GRASS - FOREST normalized with mean lowest level")
+    figname = "Signal_decay_mean_log"
+    if onshore:
+        figname += "_onshore"
     plt.savefig(
-        plot_path(relative) + "Signal_decay_mean_log.jpeg",
+        plot_path(relative) + figname + ".jpeg",
         dpi=300,
     )
 
