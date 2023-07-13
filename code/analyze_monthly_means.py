@@ -374,7 +374,7 @@ if __name__ == "__main__":
     plot_signal_decay_quantiles(s_dict, relative=True)
     plot_signal_decay_quantiles(s_dict, relative=False)
     plot_signal_decay_distributions(s_dict, relative=True)
-    plot_signal_decay_mean_loglog(s_dict, relative=True)
+    plot_signal_decay_mean_log(s_dict, relative=True)
     plot_boxplots_per_model(s_dict, relative=True)
     plot_boxplots_per_model(s_dict, relative=False)
     for season in ["DJF", "MAM", "JJA", "SON"]:
