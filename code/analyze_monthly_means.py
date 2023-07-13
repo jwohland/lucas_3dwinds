@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 
 plt.rc("axes.spines", top=False, right=False)
 from utils import *
-from params import approximate_heights
+from params import approximate_heights, roughness_dict
 import seaborn as sns
 
 data_path = "../data/monthly/"
@@ -76,6 +76,30 @@ def load_monthly_data_dictionary():
             [ds_forest, ds_grass], pd.Index(["FOREST", "GRASS"], name="experiment")
         )
     return s_dict
+
+
+def compute_mean_onshore_surface_change(s_dict):
+    """
+    Compute the absolute wind speed change in the lowest model level
+    in IDL and GERICS
+    """
+    mean_land = {}
+    for experiment in ["GRASS", "FOREST"]:
+        if not experiment in mean_land.keys():
+            mean_land[experiment] = {}
+        mean_land[experiment]["IDL"] = float(
+            restrict_to_land(s_dict["IDL"])
+            .mean(dim=["time", "rlat", "rlon"])
+            .isel(mlev=0)
+            .sel(experiment=experiment)["S"]
+        )
+        mean_land[experiment]["GERICS"] = float(
+            restrict_to_land(s_dict["GERICS"])
+            .mean(dim=["time", "rlat", "rlon"])
+            .sel(lev=27.0)
+            .sel(experiment=experiment)["S"]
+        )
+    return mean_land
 
 
 ##########################################
@@ -150,13 +174,22 @@ def plot_path(relative):
 
 
 def plot_signal_decay_quantiles(
-    s_dict, relative=False, season=None, onshore=False, quantiles=[0.50, 0.90, 0.95], monthly=True
+    s_dict,
+    relative=False,
+    season=None,
+    onshore=False,
+    quantiles=[0.50, 0.90, 0.95],
+    monthly=True,
 ):
     """
     # Signal decay with height for 50th, 90th and 95th percentile
     """
     df = calculate_changes(
-        s_dict=s_dict, relative=relative, season=season, onshore=onshore, monthly=monthly
+        s_dict=s_dict,
+        relative=relative,
+        season=season,
+        onshore=onshore,
+        monthly=monthly,
     )
     f, ax = plt.subplots(ncols=3, figsize=(15, 5))
     for i, q in enumerate(quantiles):
@@ -192,7 +225,9 @@ def plot_signal_decay_distributions(s_dict, relative, onshore=False, monthly=Tru
     """
     Aggregated  distributions
     """
-    df = calculate_changes(s_dict=s_dict, relative=relative, onshore=True, monthly=monthly)
+    df = calculate_changes(
+        s_dict=s_dict, relative=relative, onshore=True, monthly=monthly
+    )
     f, ax = plt.subplots(figsize=(12, 4))
     sns.violinplot(
         data=df.reset_index(),
@@ -216,8 +251,10 @@ def plot_signal_decay_distributions(s_dict, relative, onshore=False, monthly=Tru
     )
 
 
-def plot_signal_decay_mean_loglog(s_dict, relative=False, onshore=False, monthly=True):
-    df = calculate_changes(s_dict=s_dict, relative=relative, onshore=onshore, monthly=monthly)
+def plot_signal_decay_mean_log(s_dict, relative=False, onshore=False, monthly=True):
+    df = calculate_changes(
+        s_dict=s_dict, relative=relative, onshore=onshore, monthly=monthly
+    )
     # Looking at the mean in log-log plot using relative height
     df_mean = df.groupby(["institution", "height"]).mean()
     df_mean = df_mean.reset_index(["height"])
@@ -230,15 +267,18 @@ def plot_signal_decay_mean_loglog(s_dict, relative=False, onshore=False, monthly
         data=(np.arange(1, 30) ** (1.0 / 7)),
         columns=["S"],
     )
-    df_synthetic["institution"] = "Power law"
+    df_synthetic["institution"] = "Power law (unmodified)"
     df_synthetic["relative_height"] = df_synthetic.index
     df_mean = pd.concat([df_mean, df_synthetic.set_index("institution")])
 
     # Add synthetic -- log-law
-    def log_law(relative_heights):
-        d = 3  # m guessed
+    def log_law(relative_heights, z_zero=0.05, z_low=30, d=3):
+        """
         z_zero = 0.05  # roughly the mean accross models over C3 grass
         z_low = 30  # lowest level at 10m
+        d = 3  # m guessed discplacement height
+        """
+
         s = [
             np.log((z * z_low - d) / z_zero) / np.log((z_low - d) / z_zero)
             for z in relative_heights
@@ -250,9 +290,37 @@ def plot_signal_decay_mean_loglog(s_dict, relative=False, onshore=False, monthly
         data=log_law(np.arange(1, 30)),
         columns=["S"],
     )
-    df_synthetic["institution"] = "Log law (from 10m)"
+    df_synthetic["institution"] = "Log law (unmodified)"
     df_synthetic["relative_height"] = df_synthetic.index
     df_mean = pd.concat([df_mean, df_synthetic.set_index("institution")])
+
+    # Add synthetic -- log law -- accounting for change in profile
+    for ins in ["GERICS", "IDL"]:
+        if ins == "GERICS":
+            z_low = 30
+        else:
+            z_low = 28
+        mean_land = compute_mean_onshore_surface_change(s_dict)
+        grass_profile = log_law(
+            np.arange(1, 30), roughness_dict[ins]["C3"], z_low=z_low, d=0
+        )
+        forest_profile = log_law(
+            np.arange(1, 30),
+            0.5 * (roughness_dict[ins]["NET"] + roughness_dict[ins]["BDT"]),
+            z_low=z_low,
+            d=0,
+        )  # Mean of both forest types
+        diff_profile = np.multiply(
+            mean_land["GRASS"][ins], grass_profile
+        ) - np.multiply(mean_land["FOREST"][ins], forest_profile)
+        df_synthetic = pd.DataFrame(
+            index=pd.Index(name="relative_height", data=np.arange(1, 30)),
+            data=diff_profile / diff_profile.max(),
+            columns=["S"],
+        )
+        df_synthetic["institution"] = "Log law " + ins
+        df_synthetic["relative_height"] = df_synthetic.index
+        df_mean = pd.concat([df_mean, df_synthetic.set_index("institution")])
 
     # Just looking at the mean
     f, ax = plt.subplots()
@@ -260,9 +328,8 @@ def plot_signal_decay_mean_loglog(s_dict, relative=False, onshore=False, monthly
         data=df_mean, x="relative_height", y="S", hue="institution", alpha=0.7
     )
     ax.set_xscale("log")
-    # ax.set_yscale("log")
-
     ax.set_ylabel("GRASS - FOREST normalized with mean lowest level")
+    ax.set_xlabel("Height / height of lowest model level" )
     figname = "Signal_decay_mean_log"
     if onshore:
         figname += "_onshore"
@@ -273,7 +340,9 @@ def plot_signal_decay_mean_loglog(s_dict, relative=False, onshore=False, monthly
 
 
 def plot_boxplots_per_model(s_dict, relative, season=None, monthly=True):
-    df = calculate_changes(s_dict=s_dict, relative=relative, season=season, monthly=monthly)
+    df = calculate_changes(
+        s_dict=s_dict, relative=relative, season=season, monthly=monthly
+    )
     f, axs = plt.subplots(ncols=len(institutions), sharey=True, figsize=(14, 4))
     for i, institution in enumerate(institutions):
         df_tmp = df[df.institution == institution]
