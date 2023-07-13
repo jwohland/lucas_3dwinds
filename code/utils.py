@@ -1,7 +1,7 @@
 import cartopy.crs as ccrs
 import cartopy.feature as cf
 import numpy as np
-from params import approximate_heights
+from params import approximate_heights, horizontal_ranges
 import xarray as xr
 import matplotlib.pyplot as plt
 import matplotlib as mpl
@@ -79,7 +79,7 @@ def replace_vertical_coordinate(ds, ins):
     return ds
 
 
-def compute_land_sea_mask(other=np.nan, save=True, plot=True):
+def compute_land_sea_mask(other=np.nan, save=True, plot=True, monthly=False):
     """
     Based on the land area fraction file provided by IDL, a land-sea mask is computed by iteratively
     excluding regions that are not relevant for this analysis.
@@ -92,13 +92,23 @@ def compute_land_sea_mask(other=np.nan, save=True, plot=True):
         ds_mask < 50, 1
     )  # change to binary mask: 1 is land, other is not land
     ds_mask = ds_mask.where(ds_mask.rlat > -17, other)  # exclude northern Africa
-    ds_mask = ds_mask.where(((ds_mask.rlat > -12) | (ds_mask.rlon > -5)), other)  # exclude northern Africa
+    ds_mask = ds_mask.where(
+        ((ds_mask.rlat > -12) | (ds_mask.rlon > -5)), other
+    )  # exclude northern Africa
     ds_mask = ds_mask.where(
         ((ds_mask.rlat < 13) | (ds_mask.rlon > -5)), other
     )  # exclude Iceland
     ds_mask = ds_mask.where((ds_mask.rlon < 10), other)  # exclude Eastern end
+    # Monthly mask must be cropped in line with monthly data
+    filename = "land_sea_mask"
+    if monthly:
+        ds_mask = ds_mask.sel(
+            {"rlat": horizontal_ranges["rlats"], "rlon": horizontal_ranges["rlons"]}
+        )
+        ds_mask = ds_mask.sel(rlon=slice(-30, 17.6))
+        filename += "_monthly"
     if save:
-        ds_mask.to_netcdf("../output/land_sea_mask.nc")
+        ds_mask.to_netcdf("../output/" + filename + ".nc")
     if plot:
         ds_mask.plot(add_colorbar=False, cmap=mpl.colormaps["Oranges"])
         plt.xlim(xmin=-23, xmax=11)
@@ -108,14 +118,17 @@ def compute_land_sea_mask(other=np.nan, save=True, plot=True):
     return ds_mask
 
 
-def restrict_to_land(ds):
+def restrict_to_land(ds, monthly=True):
     """
     Exclude data over oceans and restrict to domain of interest
 
     This function is only demonstrated to work for IDL and GERICS data because of the different grid sizes!
     """
+    filename = "land_sea_mask"
+    if monthly:
+        filename += "_monthly"
     try:
-        land_sea_mask = xr.open_dataarray("../output/land_sea_mask.nc")
+        land_sea_mask = xr.open_dataarray("../output/" + filename + ".nc")
     except:
         land_sea_mask = compute_land_sea_mask()
 
