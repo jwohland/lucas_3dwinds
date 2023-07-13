@@ -20,7 +20,7 @@ def select_lowest_level(ds, institution):
     return ds.sel({vertical_name: min_level})
 
 
-def calculate_changes(s_dict, relative=False, season=None, onshore=False):
+def calculate_changes(s_dict, relative=False, season=None, onshore=False, monthly=True):
     """
     Calculates changes between GRASS and FOREST and returns as pandas DataFrame for plotting
     with seaborn.
@@ -37,7 +37,7 @@ def calculate_changes(s_dict, relative=False, season=None, onshore=False):
     for institution in tmp_institutions:
         ds_tmp = s_dict[institution]
         if onshore:
-            ds_tmp = restrict_to_land(ds_tmp)
+            ds_tmp = restrict_to_land(ds_tmp, monthly)
         if season:
             ds_tmp = (
                 ds_tmp.groupby("time.season").mean().sel(season=season).drop("season")
@@ -150,13 +150,13 @@ def plot_path(relative):
 
 
 def plot_signal_decay_quantiles(
-    s_dict, relative=False, season=None, onshore=False, quantiles=[0.50, 0.90, 0.95]
+    s_dict, relative=False, season=None, onshore=False, quantiles=[0.50, 0.90, 0.95], monthly=True
 ):
     """
     # Signal decay with height for 50th, 90th and 95th percentile
     """
     df = calculate_changes(
-        s_dict=s_dict, relative=relative, season=season, onshore=onshore
+        s_dict=s_dict, relative=relative, season=season, onshore=onshore, monthly=monthly
     )
     f, ax = plt.subplots(ncols=3, figsize=(15, 5))
     for i, q in enumerate(quantiles):
@@ -169,7 +169,8 @@ def plot_signal_decay_quantiles(
             alpha=0.8,
         )
         ax[i].set_title(str(int(q * 100)) + "th Percentile")
-        ax[i].set_xlim(xmax=1550, xmin=0)
+        ax[i].set_xlim(xmax=1000, xmin=0)
+        ax[i].set_ylim(ymin=0)
         ax[i].set_ylabel("")
         ax[i].set_xlabel("Approximate height")
     if relative:
@@ -187,11 +188,11 @@ def plot_signal_decay_quantiles(
     )
 
 
-def plot_signal_decay_distributions(s_dict, relative, onshore=False):
+def plot_signal_decay_distributions(s_dict, relative, onshore=False, monthly=True):
     """
     Aggregated  distributions
     """
-    df = calculate_changes(s_dict=s_dict, relative=relative, onshore=True)
+    df = calculate_changes(s_dict=s_dict, relative=relative, onshore=True, monthly=monthly)
     f, ax = plt.subplots(figsize=(12, 4))
     sns.violinplot(
         data=df.reset_index(),
@@ -215,8 +216,8 @@ def plot_signal_decay_distributions(s_dict, relative, onshore=False):
     )
 
 
-def plot_signal_decay_mean_loglog(s_dict, relative=False, onshore=False):
-    df = calculate_changes(s_dict=s_dict, relative=relative, onshore=onshore)
+def plot_signal_decay_mean_loglog(s_dict, relative=False, onshore=False, monthly=True):
+    df = calculate_changes(s_dict=s_dict, relative=relative, onshore=onshore, monthly=monthly)
     # Looking at the mean in log-log plot using relative height
     df_mean = df.groupby(["institution", "height"]).mean()
     df_mean = df_mean.reset_index(["height"])
@@ -271,8 +272,8 @@ def plot_signal_decay_mean_loglog(s_dict, relative=False, onshore=False):
     )
 
 
-def plot_boxplots_per_model(s_dict, relative, season=None):
-    df = calculate_changes(s_dict=s_dict, relative=relative, season=season)
+def plot_boxplots_per_model(s_dict, relative, season=None, monthly=True):
+    df = calculate_changes(s_dict=s_dict, relative=relative, season=season, monthly=monthly)
     f, axs = plt.subplots(ncols=len(institutions), sharey=True, figsize=(14, 4))
     for i, institution in enumerate(institutions):
         df_tmp = df[df.institution == institution]

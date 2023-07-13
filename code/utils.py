@@ -130,7 +130,7 @@ def restrict_to_land(ds, monthly=True):
     try:
         land_sea_mask = xr.open_dataarray("../output/" + filename + ".nc")
     except:
-        land_sea_mask = compute_land_sea_mask()
+        land_sea_mask = compute_land_sea_mask(plot=False, monthly=True)
 
     # GERICS simulations have larger outputs and need to be cropped
     if ds.rlat.size > 104:
