@@ -23,3 +23,6 @@ python compute_sub-daily_focusareas.py
 
 # Analysis
 python analyze_monthly_winds.py
+
+# Compute hub height winds
+python compute_hub_height.py
