@@ -184,12 +184,12 @@ def make_illustration_plots():
     plot_illustration_map(ds_wind)
 
 
-if __name__ == "main":
+if __name__ == "__main__":
     ins = "GERICS"  # todo generalize
     for experiment in ["GRASS", "FOREST"]:
         for year in [str(x) for x in np.arange(1986, 2016)]:
             print(year)
-            ds_wind = open_wind_geopotential(ins, year, "GRASS")
+            ds_wind = open_wind_geopotential(ins, year, experiment)
             ds_hub = calculate_hub_height_xr(ds_wind)
             ds_hub.to_netcdf(
                 output_dir
