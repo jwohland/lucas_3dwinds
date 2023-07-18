@@ -59,7 +59,7 @@ def run_parallel():
             print(ins + " " + experiment)
             CF = CF_computation(ins, experiment)
             with Pool(30) as pool:  # 1 worker per year
-                pool.map(CF.compute_CF, np.arange(1986, 2016))
+                pool.map(CF.compute_CF, [str(x) for x in np.arange(1986, 2016)])
 
 
 if __name__ == "__main__":
