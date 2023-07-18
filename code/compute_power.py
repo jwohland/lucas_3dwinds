@@ -41,7 +41,7 @@ class CF_computation:
             "../output/generation/"
             + self.ins
             + "_"
-            + P.turbine_name
+            + self.P.turbine_name
             + "_"
             + year
             + "_"
