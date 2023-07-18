@@ -5,6 +5,7 @@
 import xarray as xr
 from utils import *
 import numpy as np
+from multiprocessing import Pool
 
 data_dir = "../data/"
 output_dir = "../output/"
@@ -54,7 +55,9 @@ def open_wind_geopotential(ins, year, experiment):
                 ds_tmp[rdim] = np.round(ds_tmp[rdim], 2)
         ds_IDL_height = ds_IDL_zg["zg"] - ds_IDL_oro["orog"].drop(["lon", "lat"])
         ds_wind["height"] = ds_IDL_height
-        ds_wind = ds_wind.assign_coords({"mlev": ds_wind.mlev})  # mlev is not registered as a coordinate
+        ds_wind = ds_wind.assign_coords(
+            {"mlev": ds_wind.mlev}
+        )  # mlev is not registered as a coordinate
     else:
         print("Only GERICS and IDL currently implemented")
     return ds_wind
@@ -217,20 +220,29 @@ def make_illustration_plots():
     plot_illustration_map(ds_wind)
 
 
+class Run_parallel:
+    def __init__(self, ins, experiment):
+        self.ins = ins
+        self.experiment = experiment
+
+    def run_parallel(self, year):
+        ds_wind = open_wind_geopotential(self.ins, year, self.experiment).load()
+        ds_hub = calculate_hub_height_xr(ds_wind, self.ins)
+        ds_hub.to_netcdf(
+            output_dir
+            + "/hub_height_wind/S_hub_"
+            + self.ins
+            + "_"
+            + year
+            + "_"
+            + self.experiment
+            + ".nc"
+        )
+
+
 if __name__ == "__main__":
-    ins = "GERICS"  # todo generalize
-    for experiment in ["GRASS", "FOREST"]:
-        for year in [str(x) for x in np.arange(1986, 2016)]:
-            print(year)
-            ds_wind = open_wind_geopotential(ins, year, experiment).load()
-            ds_hub = calculate_hub_height_xr(ds_wind, ins)
-            ds_hub.to_netcdf(
-                output_dir
-                + "/hub_height_wind/S_hub_"
-                + ins
-                + "_"
-                + year
-                + "_"
-                + experiment
-                + ".nc"
-            )
+    for ins in ["GERICS", "IDL"]:
+        for experiment in ["GRASS", "FOREST"]:
+            run = Run_parallel(ins, experiment)
+            with Pool(30) as pool:
+                pool.map(run.run_parallel, [str(x) for x in np.arange(1986, 2016)])
