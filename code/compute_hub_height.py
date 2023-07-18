@@ -14,9 +14,7 @@ def open_wind_geopotential(ins, year, experiment):
     if ins == "GERICS":
         ds_GERICS_FI = xr.open_dataset(
             "../data/GERICS/" + experiment + "/FI_interpolated/FI_" + year + ".nc"
-        ).sel(
-            lev=[26, 27]
-        )
+        ).sel(lev=[26, 27])
         ds_GERICS_FIB = xr.open_dataset(
             "../data/GERICS/" + experiment + "/FIB/FIB_" + year + ".nc"
         )
