@@ -26,11 +26,41 @@ def open_wind_geopotential(ins, year, experiment):
             .drop(["rotated_pole", "hyai", "hybi", "hyam", "hybm"])
         )
         ds_wind["height"] = ds_GERICS_height
-
+    elif ins == "IDL":
+        ds_IDL_zg = xr.open_dataset(
+            "../data/IDL/"
+            + experiment
+            + "/zg/zg_EUR-44_ECMWF-ERAINT_LUCAS_"
+            + experiment
+            + "_r1i1p1_IDL_WRFV381D_v1_1hr_"
+            + year
+            + "010100-"
+            + year
+            + "123123.nc"
+        ).isel(
+            mlev=[1, 2]
+        )  # only using levels 1 and 2 corresponding to around 97m and 107m
+        ds_IDL_oro = xr.open_dataset(
+            "../data/IDL/orog_EUR-44_ECMWF-ERAINT_LUCAS_EVAL_r1i1p1_IDL_WRFV381D_v1_fx.nc"
+        )
+        ds_wind = (
+            xr.open_dataset(data_dir + "IDL/" + experiment + "/S/" + year + ".nc")
+            .isel(mlev=[1, 2])
+            .drop(["rotated_pole", "time_bnds"])
+        )
+        # coordinates are off by a rounding error. Corrected here
+        for ds_tmp in [ds_IDL_zg, ds_IDL_oro, ds_wind]:
+            for rdim in ["rlat", "rlon"]:
+                ds_tmp[rdim] = np.round(ds_tmp[rdim], 2)
+        ds_IDL_height = ds_IDL_zg["zg"] - ds_IDL_oro["orog"].drop(["lon", "lat"])
+        ds_wind["height"] = ds_IDL_height
+        ds_wind = ds_wind.assign_coords({"mlev": ds_wind.mlev})  # mlev is not registered as a coordinate
+    else:
+        print("Only GERICS and IDL currently implemented")
     return ds_wind
 
 
-def calculate_hub_height_xr(ds, hub_height=120):
+def calculate_hub_height_xr(ds, institution, hub_height=120):
     """
     Calculates wind speeds at hub height using data at evolving heights and
     the power law. Execution is done for one timestep here.
@@ -43,21 +73,26 @@ def calculate_hub_height_xr(ds, hub_height=120):
 
 
     """
+    vertical_dim = vertical_dim_dic[institution]
     # Identify index of upper and lower level to be used here
-    height_max = ds["height"].idxmax(dim="lev")
-    height_min = ds["height"].idxmin(dim="lev")
+    height_max = ds["height"].idxmax(dim=vertical_dim)
+    height_min = ds["height"].idxmin(dim=vertical_dim)
     # Calculate power law exponent alpha
-    alpha = np.log(ds["S"].sel(lev=height_max) / ds["S"].sel(lev=height_min)) / np.log(
-        ds["height"].sel(lev=height_max) / ds["height"].sel(lev=height_min)
+    alpha = np.log(
+        ds["S"].sel({vertical_dim: height_max})
+        / ds["S"].sel({vertical_dim: height_min})
+    ) / np.log(
+        ds["height"].sel({vertical_dim: height_max})
+        / ds["height"].sel({vertical_dim: height_min})
     )
     # Interpolate to hub height
     y_hub = (
-        ds["S"].sel(lev=height_min)
-        * (hub_height / ds["height"].sel(lev=height_min)) ** alpha
+        ds["S"].sel({vertical_dim: height_min})
+        * (hub_height / ds["height"].sel({vertical_dim: height_min})) ** alpha
     )
     ds_hub = y_hub.to_dataset(name="S_hub")
     ds_hub["S_hub"].attrs = {"long_name": "Wind speed at hub height [m/s]"}
-    ds_hub.drop("lev")
+    ds_hub.drop(vertical_dim)
     return ds_hub
 
 
@@ -118,7 +153,7 @@ def plot_illustration_map(ds=None, ins="GERICS", year="2000", experiment="GRASS"
     if not ds:  # load data if not externally provided
         ds = open_wind_geopotential(ins, year, experiment)
     ds_tmp = ds.isel(time=1)
-    ds_hub = calculate_hub_height_xr(ds_tmp)
+    ds_hub = calculate_hub_height_xr(ds_tmp, ins)
     height_max, height_min = 26, 27  # Correct levels for GERICS
 
     f, axs = plt.subplots(ncols=3, nrows=2, figsize=(16, 8))
@@ -188,7 +223,7 @@ if __name__ == "__main__":
         for year in [str(x) for x in np.arange(1986, 2016)]:
             print(year)
             ds_wind = open_wind_geopotential(ins, year, experiment)
-            ds_hub = calculate_hub_height_xr(ds_wind)
+            ds_hub = calculate_hub_height_xr(ds_wind, ins)
             ds_hub.to_netcdf(
                 output_dir
                 + "/hub_height_wind/S_hub_"
