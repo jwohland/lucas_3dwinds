@@ -28,3 +28,6 @@ python analyze_monthly_winds.py
 python compute_hub_height.py
 # Compute power generation
 python compute_power.py
+
+# Evaluation power generation
+python analyze_generation
