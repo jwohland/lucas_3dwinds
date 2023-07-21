@@ -118,7 +118,7 @@ def compute_land_sea_mask(other=np.nan, save=True, plot=True, monthly=False):
     return ds_mask
 
 
-def restrict_to_land(ds, monthly=True):
+def restrict_to_land(ds, monthly=True, variable_name="S"):
     """
     Exclude data over oceans and restrict to domain of interest
 
@@ -141,7 +141,7 @@ def restrict_to_land(ds, monthly=True):
     if np.abs((land_sea_mask.rlat.values - ds.rlat.values).mean()) < 0.05 * 0.44:
         land_sea_mask["rlat"] = ds.rlat
         land_sea_mask["rlon"] = ds.rlon
-        ds_masked = (land_sea_mask * ds["S"]).to_dataset(name="S")
+        ds_masked = (land_sea_mask * ds[variable_name]).to_dataset(name=variable_name)
         return ds_masked
     else:
         print("Grids of land sea mask and wind data do not match")
