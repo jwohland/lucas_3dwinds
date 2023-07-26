@@ -226,7 +226,7 @@ def plot_signal_decay_distributions(s_dict, relative, onshore=False, monthly=Tru
     Aggregated  distributions
     """
     df = calculate_changes(
-        s_dict=s_dict, relative=relative, onshore=True, monthly=monthly
+        s_dict=s_dict, relative=relative, onshore=onshore, monthly=monthly
     )
     f, ax = plt.subplots(figsize=(12, 4))
     sns.violinplot(
@@ -329,7 +329,7 @@ def plot_signal_decay_mean_log(s_dict, relative=False, onshore=False, monthly=Tr
     )
     ax.set_xscale("log")
     ax.set_ylabel("GRASS - FOREST normalized with mean lowest level")
-    ax.set_xlabel("Height / height of lowest model level" )
+    ax.set_xlabel("Height / height of lowest model level")
     figname = "Signal_decay_mean_log"
     if onshore:
         figname += "_onshore"
@@ -339,9 +339,13 @@ def plot_signal_decay_mean_log(s_dict, relative=False, onshore=False, monthly=Tr
     )
 
 
-def plot_boxplots_per_model(s_dict, relative, season=None, monthly=True):
+def plot_boxplots_per_model(s_dict, relative, season=None, monthly=True, onshore=False):
     df = calculate_changes(
-        s_dict=s_dict, relative=relative, season=season, monthly=monthly
+        s_dict=s_dict,
+        relative=relative,
+        season=season,
+        monthly=monthly,
+        onshore=onshore,
     )
     f, axs = plt.subplots(ncols=len(institutions), sharey=True, figsize=(14, 4))
     for i, institution in enumerate(institutions):
@@ -358,11 +362,13 @@ def plot_boxplots_per_model(s_dict, relative, season=None, monthly=True):
         axs[0].set_ylabel("GRASS - FOREST normalized with mean lowest level")
     else:
         axs[0].set_ylabel("GRASS - FOREST [m/s]")
-    figname = "Signal_decay_boxplot_per_model.jpeg"
+    figname = "Signal_decay_boxplot_per_model"
     if season:
-        figname = "Signal_decay_boxplot_per_model_" + season + ".jpeg"
+        figname = "Signal_decay_boxplot_per_model_" + season
+    if onshore:
+        figname += "_onshore"
     plt.savefig(
-        plot_path(relative) + figname,
+        plot_path(relative) + figname + ".jpeg",
         dpi=300,
     )
 
@@ -371,13 +377,24 @@ if __name__ == "__main__":
     # Execute a lot of plots
     s_dict = load_monthly_data_dictionary()
     plot_maps_per_height(s_dict)
-    plot_signal_decay_quantiles(s_dict, relative=True)
-    plot_signal_decay_quantiles(s_dict, relative=False)
-    plot_signal_decay_distributions(s_dict, relative=True)
-    plot_signal_decay_mean_log(s_dict, relative=True)
-    plot_boxplots_per_model(s_dict, relative=True)
-    plot_boxplots_per_model(s_dict, relative=False)
     for season in ["DJF", "MAM", "JJA", "SON"]:
         plot_maps_per_height(s_dict, season=season)
-        plot_signal_decay_quantiles(s_dict, relative=False, season=season)
         plot_boxplots_per_model(s_dict, relative=False, season=season)
+    # Onshore decay computation needs corrections for GERICS because grid is too large
+    s_dict["GERICS"] = s_dict["GERICS"].isel(rlat=slice(0, -1), rlon=slice(0, -1))
+    plot_signal_decay_quantiles(
+        s_dict, relative=False, onshore=True, quantiles=[0.10, 0.50, 0.90]
+    )
+    plot_signal_decay_distributions(s_dict, onshore=True, relative=True)
+    plot_signal_decay_mean_log(s_dict, relative=True, onshore=True)
+    # todo following two lines currently do not output as expected
+    # plot_boxplots_per_model(s_dict, relative=True, onshore=True)
+    # plot_boxplots_per_model(s_dict, relative=False, onshore=True)
+    for season in ["DJF", "MAM", "JJA", "SON"]:
+        plot_signal_decay_quantiles(
+            s_dict,
+            relative=False,
+            onshore=True,
+            season=season,
+            quantiles=[0.10, 0.50, 0.90],
+        )
