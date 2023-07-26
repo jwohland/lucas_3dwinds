@@ -1,12 +1,6 @@
-import xarray as xr
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
-
-plt.rc("axes.spines", top=False, right=False)
 from utils import *
 
-import seaborn as sns
+plt.rc("axes.spines", top=False, right=False)
 
 
 
