@@ -5,6 +5,7 @@ from params import approximate_heights, horizontal_ranges
 import xarray as xr
 import matplotlib.pyplot as plt
 import matplotlib as mpl
+import string
 
 
 SUBPLOT_KW = {
@@ -26,6 +27,42 @@ TEXT_PARAMS = {
 def add_coast_boarders(ax):
     ax.add_feature(cf.COASTLINE)
     ax.add_feature(cf.BORDERS)
+
+
+def add_letters(ax, x=-0.08, y=1.02, fs=10, letter_offset=0):
+    """
+    adds bold letters a,b,c,... to the upper left corner of subplots
+    :param ax: axis
+    :param x: x location of text
+    :param y: ylocation of text
+    :param fs: fontsize
+    :return:
+    """
+    letters = list(string.ascii_lowercase)
+    try:
+        ax.flat
+        for il, tmp_ax in enumerate(ax.flat):
+            tmp_ax.text(
+                x,
+                y,
+                letters[il + letter_offset],
+                weight="bold",
+                horizontalalignment="center",
+                verticalalignment="center",
+                transform=tmp_ax.transAxes,
+                fontsize=fs,
+            )
+    except AttributeError:
+        ax.text(
+            x,
+            y,
+            letters[letter_offset],
+            weight="bold",
+            horizontalalignment="center",
+            verticalalignment="center",
+            transform=ax.transAxes,
+            fontsize=fs,
+        )
 
 
 vertical_dim_dic = {
