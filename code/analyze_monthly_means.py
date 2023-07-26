@@ -161,6 +161,140 @@ def plot_maps_per_height(s_dict, season=None):
         )
 
 
+def plot_maps_per_height_paper(s_dict, season=None):
+    pole = (-162.0, 39.25)  # rotated pole in EURO-CORDEX
+    for ins in ["IDL", "GERICS"]:
+        vertical_dim = vertical_dim_dic[ins]
+        if ins == "IDL":
+            N_vertical = 4  # number of levels below approx. 300m
+        else:
+            N_vertical = 3
+        f, ax = plt.subplots(
+            N_vertical,
+            3,
+            figsize=(9, N_vertical * 3),
+            sharex=True,
+            sharey=True,
+            subplot_kw={
+                "transform": ccrs.RotatedPole(*pole),
+                "projection": ccrs.RotatedPole(*pole),
+            },
+        )
+        cbar_ax = f.add_axes([0.08, 0.05, 0.55, 0.03])
+        cbar_ax_diff = f.add_axes([0.68, 0.05, 0.25, 0.03])
+
+        for N in range(N_vertical):
+            # IDL counts from surface upwards while GERICS counts from top of atmosphere down
+            if ins == "IDL":
+                lev_index = N
+            else:
+                lev_index = -(N + 1)
+            s_GRASS = (
+                s_dict[ins]
+                .isel({vertical_dim: lev_index})
+                .sel({"experiment": "GRASS"})["S"]
+            )
+            s_FOREST = (
+                s_dict[ins]
+                .isel({vertical_dim: lev_index})
+                .sel({"experiment": "FOREST"})["S"]
+            )
+            if season:
+                s_GRASS = (
+                    s_GRASS.groupby("time.season").mean(dim="time").sel(season=season)
+                )
+                s_FOREST = (
+                    s_FOREST.groupby("time.season").mean(dim="time").sel(season=season)
+                )
+            else:
+                s_GRASS = s_GRASS.mean("time")
+                s_FOREST = s_FOREST.mean("time")
+            s_diff = s_GRASS - s_FOREST
+            # Plot parameters
+            cbar_kwargs = {
+                "label": "Mean wind speeds [m/s]",
+                "orientation": "horizontal",
+            }
+            if N == 0:
+                # plot with colorbar
+                s_GRASS.plot(
+                    ax=ax[N, 0],
+                    levels=13,
+                    vmin=2,
+                    vmax=14,
+                    cbar_ax=cbar_ax,
+                    cbar_kwargs=cbar_kwargs,
+                )
+                s_FOREST.plot(
+                    ax=ax[N, 1],
+                    levels=13,
+                    vmin=2,
+                    vmax=14,
+                    cbar_ax=cbar_ax,
+                    cbar_kwargs=cbar_kwargs,
+                )
+                s_diff.plot(
+                    ax=ax[N, 2],
+                    levels=6,
+                    vmin=0,
+                    vmax=2.5,
+                    extend="max",
+                    cmap="Reds",
+                    cbar_ax=cbar_ax_diff,
+                    cbar_kwargs={
+                        "label": "Wind speed difference [m/s]",
+                        "orientation": "horizontal",
+                    },
+                )
+            else:
+                s_GRASS.plot(
+                    ax=ax[N, 0], levels=13, vmin=2, vmax=14, add_colorbar=False
+                )
+                s_FOREST.plot(
+                    ax=ax[N, 1], levels=13, vmin=2, vmax=14, add_colorbar=False
+                )
+                s_diff.plot(
+                    ax=ax[N, 2],
+                    levels=6,
+                    vmin=0,
+                    vmax=2.5,
+                    cmap="Reds",
+                    add_colorbar=False,
+                )
+            if ins != "IDL":
+                height = approximate_heights["GERICS"][float(s_GRASS[vertical_dim])]
+            else:
+                height = approximate_heights["IDL"][
+                    N
+                ]  # this is IDL which only counts its levels
+            ax[N, 0].text(
+                -0.06,
+                0.5,
+                str(height) + " m",
+                rotation=90,
+                horizontalalignment="center",
+                verticalalignment="center",
+                transform=ax[N, 0].transAxes,
+                fontsize=14,
+            )
+        for ax_tmp in ax.flatten():
+            add_coast_boarders(ax_tmp)
+            ax_tmp.set_title("")
+        ax[0, 0].set_title("GRASS")
+        ax[0, 1].set_title("FOREST")
+        ax[0, 2].set_title("GRASS-FOREST")
+        figname = "Diff_maps_" + ins
+        if season:
+            figname += "Diff_maps_" + ins + "_" + season
+
+        plt.subplots_adjust(0.05, 0.10, 0.95, 0.97, hspace=0.05, wspace=0.05)
+        add_letters(ax, x=0.05, y=0.95, fs=12)
+        plt.savefig(
+            "../plots/exploration/absolute_differences/" + figname + "_paper.jpeg",
+            dpi=300,
+        )
+
+
 ##########################################
 # Height analysis using relative changes
 ##########################################
@@ -376,9 +510,9 @@ def plot_boxplots_per_model(s_dict, relative, season=None, monthly=True, onshore
 if __name__ == "__main__":
     # Execute a lot of plots
     s_dict = load_monthly_data_dictionary()
-    plot_maps_per_height(s_dict)
+    plot_maps_per_height_paper(s_dict)
     for season in ["DJF", "MAM", "JJA", "SON"]:
-        plot_maps_per_height(s_dict, season=season)
+        plot_maps_per_height_paper(s_dict, season=season)
         plot_boxplots_per_model(s_dict, relative=False, season=season)
     # Onshore decay computation needs corrections for GERICS because grid is too large
     s_dict["GERICS"] = s_dict["GERICS"].isel(rlat=slice(0, -1), rlon=slice(0, -1))
