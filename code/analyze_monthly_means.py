@@ -285,7 +285,7 @@ def plot_maps_per_height_paper(s_dict, season=None):
         ax[0, 2].set_title("GRASS-FOREST")
         figname = "Diff_maps_" + ins
         if season:
-            figname += "Diff_maps_" + ins + "_" + season
+            figname += "_" + season
 
         plt.subplots_adjust(0.05, 0.10, 0.95, 0.97, hspace=0.05, wspace=0.05)
         add_letters(ax, x=0.05, y=0.95, fs=12)
