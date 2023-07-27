@@ -1,4 +1,3 @@
-import xarray as xr
 import pandas as pd
 import matplotlib.pyplot as plt
 
@@ -162,7 +161,6 @@ def plot_maps_per_height(s_dict, season=None):
 
 
 def plot_maps_per_height_paper(s_dict, season=None):
-    pole = (-162.0, 39.25)  # rotated pole in EURO-CORDEX
     for ins in ["IDL", "GERICS"]:
         vertical_dim = vertical_dim_dic[ins]
         if ins == "IDL":
@@ -175,10 +173,7 @@ def plot_maps_per_height_paper(s_dict, season=None):
             figsize=(9, N_vertical * 3),
             sharex=True,
             sharey=True,
-            subplot_kw={
-                "transform": ccrs.RotatedPole(*pole),
-                "projection": ccrs.RotatedPole(*pole),
-            },
+            subplot_kw=SUBPLOT_KW,
         )
         cbar_ax = f.add_axes([0.08, 0.05, 0.55, 0.03])
         cbar_ax_diff = f.add_axes([0.68, 0.05, 0.25, 0.03])

@@ -7,9 +7,13 @@ import matplotlib.pyplot as plt
 import matplotlib as mpl
 import string
 
+POLE = (-162.0, 39.25)  # rotated pole in EURO-CORDEX
 
 SUBPLOT_KW = {
-    "subplot_kw": {"projection": ccrs.PlateCarree(), "extent": [-15, 50, 35, 70]}
+    "subplot_kw": {
+        "projection": ccrs.RotatedPole(*POLE),
+        "projection": ccrs.RotatedPole(*POLE),
+    }
 }
 
 FIG_PARAMS = {
