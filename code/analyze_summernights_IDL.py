@@ -10,7 +10,7 @@ ds_diff = ds_grass - ds_forest
 ds_diff = ds_diff.sel(mlev=slice(6))
 ds_diff = replace_vertical_coordinate(ds_diff, "IDL")
 
-f, axs = plt.subplots(ncols=6, figsize=(20, 5), sharex=True, subplot_kw=SUBPLOT_KW)
+f, axs = plt.subplots(ncols=6, figsize=(20, 5), sharex=True, **SUBPLOT_KW)
 plt.subplots_adjust(bottom=0.20)
 cbar_ax = f.add_axes([0.2, 0.12, 0.6, 0.04])
 cbar_kwargs = {
