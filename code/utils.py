@@ -152,10 +152,12 @@ def compute_land_sea_mask(other=np.nan, save=True, plot=True, monthly=False):
     if save:
         ds_mask.to_netcdf("../output/" + filename + ".nc")
     if plot:
-        ds_mask.plot(add_colorbar=False, cmap=mpl.colormaps["Oranges"])
+        f, ax = plt.subplots(**SUBPLOT_KW)
+        ds_mask.plot(ax=ax,add_colorbar=False, cmap=mpl.colormaps["Oranges"])
         plt.xlim(xmin=-23, xmax=11)
         plt.ylim(ymin=-15, ymax=22)
-        plt.title("Land mask used for signal decay over Europe")
+        add_coast_boarders(ax)
+        plt.tight_layout()
         plt.savefig("../plots/land_sea_mask.jpeg", dpi=300)
     return ds_mask
 
