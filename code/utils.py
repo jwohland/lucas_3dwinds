@@ -27,6 +27,7 @@ TEXT_PARAMS = {
 def add_coast_boarders(ax):
     ax.add_feature(cf.COASTLINE)
     ax.add_feature(cf.BORDERS)
+    ax.gridlines()
 
 
 def add_letters(ax, x=-0.08, y=1.02, fs=10, letter_offset=0):

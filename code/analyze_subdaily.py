@@ -6,6 +6,54 @@ data_path = "../data/sub-daily/"
 month_dic = {1: "January", 4: "April", 7: "July", 10: "October"}
 
 
+def plot_focus_areas():
+    """
+    Make a plot showing the boxes used for the focus areas.
+
+    Orography is plotted in the background.
+    """
+    ds_oro = xr.open_dataset(
+        "../data/JLU/oro/oro_EUR44_ECMWF-ERAINT_LUCAS_FOREST_JLU_CCLM-5-0-9_fx.nc"
+    )
+    pole = (-162.0, 39.25)  # rotated pole in EURO-CORDEX
+    f, ax = plt.subplots(
+        subplot_kw={
+            "transform": ccrs.RotatedPole(*pole),
+            "projection": ccrs.RotatedPole(*pole),
+        }
+    )
+    ds_oro["HSURF"].plot(vmin=0, cmap="Reds", extend="neither")
+    add_coast_boarders(ax)
+
+    def _get_plot_coords(inputs):
+        rlons, rlats = inputs[0], inputs[1]
+        x1, x2 = rlons[0], rlons[1]
+        y1, y2 = rlats[0], rlats[1]
+        return ([x1, x2, x2, x1, x1], [y1, y1, y2, y2, y1])
+
+    case_dict = {
+        "Sweden": ([-3, -2], [7, 8]),
+        "Germany": ([-6.5, -5.5], [1, 2]),
+        "Spain": ([-18, -17], [-8, -7]),
+    }
+
+    colors = ["teal", "olive", "purple"]
+    for i, country in enumerate(case_dict.keys()):
+        xs, ys = _get_plot_coords(case_dict[country])
+        ax.plot(
+            xs,
+            ys,
+            color=colors[i],
+            linewidth=2,
+            marker=None,
+            label=country,
+        )
+    plt.legend(loc="upper left")
+    plt.title("")
+    plt.tight_layout()
+    plt.savefig("../plots/Case_study_definitions.jpeg", dpi=600)
+
+
 def plot_profile_subdaily(loc):
     """
     For a given location loc (either "Germany" or "Sweden" or "Spain"),
@@ -143,5 +191,6 @@ def plot_profile_subdaily(loc):
 
 
 if __name__ == "__main__":
+    plot_focus_areas()
     for loc in ["Germany", "Sweden", "Spain"]:
         plot_profile_subdaily(loc)
