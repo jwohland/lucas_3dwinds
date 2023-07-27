@@ -94,8 +94,10 @@ def plot_mean_maps(ds_dict):
         per experiment and as GRASS-FOREST difference (columns)
     """
     plt.close()
-    f, axs = plt.subplots(ncols=3, nrows=2, sharex=True, sharey=True, figsize=(12, 6))
-    plt.subplots_adjust(0.04, 0.2, 0.95, 0.97, hspace=0.05, wspace=0.05)
+    f, axs = plt.subplots(
+        ncols=3, nrows=2, sharex=True, sharey=True, figsize=(12, 6), **SUBPLOT_KW
+    )
+    plt.subplots_adjust(0.07, 0.2, 0.92, 0.97, hspace=0.05, wspace=0.05)
     cbar_ax = f.add_axes([0.02, 0.1, 0.63, 0.03])
     cbar_ax_diff = f.add_axes([0.66, 0.1, 0.3, 0.03])
     for i, ins in enumerate(["GERICS", "IDL"]):
@@ -130,14 +132,63 @@ def plot_mean_maps(ds_dict):
         axs[0, 0].set_title("GRASS")
         axs[0, 1].set_title("FOREST")
         axs[0, 2].set_title("GRASS - FOREST")
-        axs[i, 0].set_ylabel(ins)
-        axs[i, 1].set_ylabel("")
-        axs[i, 2].set_ylabel("")
+        axs[i, 0].text(
+            -0.4,
+            0.5,
+            ins,
+            verticalalignment="center",
+            transform=axs[i, 0].transAxes,
+            rotation=90,
+        )
 
     for ax in axs.flatten():
         ax.set_xlabel("")
+        add_coast_boarders(ax)
+    add_letters(axs)
 
-    plt.savefig("../plots/Mean_CF_change_maps.png", dpi=300)
+    plt.savefig("../plots/generation/Mean_CF_change_maps.png", dpi=300)
+
+
+def plot_relative_change(ds_dict):
+    """
+    Make a 1x2 plot displaying relative change in mean wind power generation
+        (GRASS-FOREST)/FOREST
+    """
+    plt.close()
+    f, axs = plt.subplots(
+        nrows=2, sharex=True, sharey=True, figsize=(4, 8), **SUBPLOT_KW
+    )
+    plt.subplots_adjust(0.06, 0.13, 0.95, 0.97, hspace=0.05, wspace=0.05)
+    cbar_ax = f.add_axes([0.1, 0.07, 0.8, 0.03])
+    for i, ins in enumerate(["GERICS", "IDL"]):
+        diff = (
+            (ds_dict[ins]["GRASS"]["mean"] - ds_dict[ins]["FOREST"]["mean"])
+            / ds_dict[ins]["FOREST"]["mean"]
+            * 100
+        )
+        diff.plot(
+            ax=axs[i],
+            vmin=0,
+            vmax=45,
+            levels=10,
+            extend="max",
+            cbar_ax=cbar_ax,
+            cmap=plt.get_cmap("Reds"),
+            cbar_kwargs={
+                "label": "Relative difference in mean capacity factor [%]",
+                "orientation": "horizontal",
+            },
+        )
+        axs[0].set_title("(GRASS - FOREST) / FOREST")
+
+        axs[i].set_ylabel(ins)
+
+    for ax in axs.flatten():
+        ax.set_xlabel("")
+        add_coast_boarders(ax)
+    add_letters(axs, x=-0.02, y=1.02, fs=12)
+
+    plt.savefig("../plots/generation/Mean_CF_change_relative_diff_maps.png", dpi=300)
 
 
 def plot_timestep_histograms(df):
@@ -157,7 +208,7 @@ def plot_timestep_histograms(df):
         axs[i].set_ylabel("Relative count [%]")
         axs[i].set_ylim(ymax=28)
     plt.tight_layout()
-    plt.savefig("../plots/CF_distribution.png", dpi=300)
+    plt.savefig("../plots/generation/CF_distribution.png", dpi=300)
 
 
 def plot_mean_histograms(ds_dict):
@@ -181,7 +232,7 @@ def plot_mean_histograms(ds_dict):
     axs[0].legend()
     axs[1].set_xlabel("Time-mean onshore capacity factor")
     plt.tight_layout()
-    plt.savefig("../plots/CF_distribution_time-mean.png", dpi=300)
+    plt.savefig("../plots/generation/CF_distribution_time-mean.png", dpi=300)
 
 
 if __name__ == "__main__":
