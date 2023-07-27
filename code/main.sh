@@ -24,6 +24,7 @@ python compute_sub-daily_focusareas.py
 # Analysis
 python analyze_monthly_winds.py
 python analyze_subdaily.py
+python analyze_summernights_IDL.py
 
 # Compute hub height winds
 python compute_hub_height.py
