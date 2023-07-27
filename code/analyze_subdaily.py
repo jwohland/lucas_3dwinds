@@ -16,9 +16,7 @@ def plot_focus_areas():
         "../data/JLU/oro/oro_EUR44_ECMWF-ERAINT_LUCAS_FOREST_JLU_CCLM-5-0-9_fx.nc"
     )
 
-    f, ax = plt.subplots(
-        subplot_kw=SUBPLOT_KW
-    )
+    f, ax = plt.subplots(subplot_kw=SUBPLOT_KW)
     ds_oro["HSURF"].plot(vmin=0, cmap="Reds", extend="neither")
     add_coast_boarders(ax)
 
@@ -60,9 +58,9 @@ def plot_profile_subdaily(loc):
     The other models are not included because resolution is too coarse
     or geopotential height is not available
     """
-    f, axs = plt.subplots(ncols=4, nrows=4, figsize=(10, 10), sharey=True)
+    f, axs = plt.subplots(ncols=4, nrows=4, figsize=(10, 10), sharex=True)
     cbar_list = [f.add_axes([0.1 + 0.47 * i, 0.045, 0.37, 0.015]) for i in range(2)]
-    plt.subplots_adjust(bottom=0.12, top=0.95, right=0.98, left=0.08)
+    plt.subplots_adjust(bottom=0.12, top=0.95, right=0.98, left=0.1)
 
     for j, ins in enumerate(["GERICS", "IDL"]):
         for i, month in enumerate([1, 4, 7, 10]):
@@ -101,6 +99,7 @@ def plot_profile_subdaily(loc):
             ds_diff = ds_grass.drop("rotated_pole", errors="ignore") - ds_forest.drop(
                 "rotated_pole", errors="ignore"
             )
+
             if (i == 0) & (j == 0):
                 # Add colorbar
 
@@ -109,6 +108,8 @@ def plot_profile_subdaily(loc):
                     vmin=2,
                     vmax=14,
                     levels=13,
+                    y="approximate height",
+                    x="hour",
                     cbar_ax=cbar_list[0],
                     cbar_kwargs={
                         "label": "Mean wind speed [m/s]",
@@ -121,6 +122,8 @@ def plot_profile_subdaily(loc):
                     vmin=-2.2,
                     vmax=2.2,
                     levels=12,
+                    y="approximate height",
+                    x="hour",
                     cbar_ax=cbar_list[1],
                     cbar_kwargs={
                         "label": "Wind speed change [m/s]",
@@ -129,7 +132,13 @@ def plot_profile_subdaily(loc):
                 )
             else:
                 ds_grass["S"].groupby("time.hour").mean().plot(
-                    ax=axs[i, 0 + 2 * j], vmin=2, vmax=14, levels=13, add_colorbar=False
+                    ax=axs[i, 0 + 2 * j],
+                    vmin=2,
+                    vmax=14,
+                    levels=13,
+                    add_colorbar=False,
+                    y="approximate height",
+                    x="hour",
                 )
                 ds_diff["S"].groupby("time.hour").mean().plot(
                     ax=axs[i, 1 + 2 * j],
@@ -137,11 +146,13 @@ def plot_profile_subdaily(loc):
                     vmin=-2.2,
                     vmax=2.2,
                     levels=12,
+                    y="approximate height",
+                    x="hour",
                     add_colorbar=False,
                 )
             if j == 0:
                 axs[i, 0].text(
-                    -0.35,
+                    -0.4,
                     0.5,
                     month_dic[month],
                     verticalalignment="center",
@@ -168,19 +179,20 @@ def plot_profile_subdaily(loc):
         for i_tick in range(4):
             for j_tick in range(2):
                 ax = axs[i_tick, 2 * j + j_tick]
-                ax.set_xticks(ds_forest["approximate height"])
-                ax.set_yticks([0, 6, 12, 18])
-                ax.set_xlim(xmin=0, xmax=700)
+                ax.set_yticks(ds_forest["approximate height"])
+                ax.set_xticks([0, 6, 12, 18])
+                ax.set_ylim(ymin=0, ymax=700)
 
     # Delete non-needed x axis labels in the middle of the plot
     for i in range(3):
         for k in range(4):
+            axs[3, k].set_xlabel("Hour of the day")  # Clearer than just "hour"
             axs[i, k].set_xlabel("")
     # Delete non-needed y axis labels
     for l in range(1, 4):
         for k in range(4):
             axs[k, l].set_ylabel("")
-    add_letters(axs, x=-0.1, y=1, fs=10)
+    add_letters(axs, x=-0.1, y=1.02, fs=10)
 
     plt.savefig(
         "../plots/exploration/sub-daily/Profile_" + loc + "_paper.jpeg", dpi=300
