@@ -16,7 +16,7 @@ def plot_focus_areas():
         "../data/JLU/oro/oro_EUR44_ECMWF-ERAINT_LUCAS_FOREST_JLU_CCLM-5-0-9_fx.nc"
     )
 
-    f, ax = plt.subplots(subplot_kw=SUBPLOT_KW)
+    f, ax = plt.subplots(**SUBPLOT_KW)
     ds_oro["HSURF"].plot(vmin=0, cmap="Reds", extend="neither")
     add_coast_boarders(ax)
 
