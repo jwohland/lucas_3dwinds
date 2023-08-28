@@ -173,7 +173,7 @@ def plot_maps_per_height_paper(s_dict, season=None):
             figsize=(9, N_vertical * 3),
             sharex=True,
             sharey=True,
-            subplot_kw=SUBPLOT_KW,
+            **SUBPLOT_KW,
         )
         cbar_ax = f.add_axes([0.08, 0.05, 0.55, 0.03])
         cbar_ax_diff = f.add_axes([0.68, 0.05, 0.25, 0.03])
@@ -210,31 +210,31 @@ def plot_maps_per_height_paper(s_dict, season=None):
                 "label": "Mean wind speeds [m/s]",
                 "orientation": "horizontal",
             }
+            params_abs = {"levels": 13, "vmin": 2, "vmax": 14, "extend": "neither"}
+            params_diff = {
+                "levels": 6,
+                "vmin": 0,
+                "vmax": 2.5,
+                "extend": "max",
+                "cmap": "Reds",
+            }
             if N == 0:
                 # plot with colorbar
                 s_GRASS.plot(
                     ax=ax[N, 0],
-                    levels=13,
-                    vmin=2,
-                    vmax=14,
+                    **params_abs,
                     cbar_ax=cbar_ax,
                     cbar_kwargs=cbar_kwargs,
                 )
                 s_FOREST.plot(
                     ax=ax[N, 1],
-                    levels=13,
-                    vmin=2,
-                    vmax=14,
+                    **params_abs,
                     cbar_ax=cbar_ax,
                     cbar_kwargs=cbar_kwargs,
                 )
                 s_diff.plot(
                     ax=ax[N, 2],
-                    levels=6,
-                    vmin=0,
-                    vmax=2.5,
-                    extend="max",
-                    cmap="Reds",
+                    **params_diff,
                     cbar_ax=cbar_ax_diff,
                     cbar_kwargs={
                         "label": "Wind speed difference [m/s]",
@@ -243,17 +243,14 @@ def plot_maps_per_height_paper(s_dict, season=None):
                 )
             else:
                 s_GRASS.plot(
-                    ax=ax[N, 0], levels=13, vmin=2, vmax=14, add_colorbar=False
+                    ax=ax[N, 0], **params_abs, add_colorbar=False
                 )
                 s_FOREST.plot(
-                    ax=ax[N, 1], levels=13, vmin=2, vmax=14, add_colorbar=False
+                    ax=ax[N, 1], **params_abs, add_colorbar=False
                 )
                 s_diff.plot(
                     ax=ax[N, 2],
-                    levels=6,
-                    vmin=0,
-                    vmax=2.5,
-                    cmap="Reds",
+                    **params_diff,
                     add_colorbar=False,
                 )
             if ins != "IDL":
