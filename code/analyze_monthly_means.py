@@ -1,10 +1,9 @@
 import pandas as pd
-import matplotlib.pyplot as plt
-
-plt.rc("axes.spines", top=False, right=False)
 from utils import *
 from params import approximate_heights, roughness_dict
 import seaborn as sns
+
+plt.rc("axes.spines", top=False, right=False)
 
 data_path = "../data/monthly/"
 institutions = ["IDL", "ETH", "GERICS", "OUR", "BCCR"]  # JLU not yet preprocessed
@@ -586,7 +585,6 @@ if __name__ == "__main__":
     plot_maps_per_height_paper(s_dict)
     for season in ["DJF", "MAM", "JJA", "SON"]:
         plot_maps_per_height_paper(s_dict, season=season)
-        plot_boxplots_per_model(s_dict, relative=False, season=season)
     # Onshore decay computation needs corrections for GERICS because grid is too large
     s_dict["GERICS"] = s_dict["GERICS"].isel(rlat=slice(0, -1), rlon=slice(0, -1))
     stats_per_height(s_dict)
@@ -595,9 +593,6 @@ if __name__ == "__main__":
     )
     plot_signal_decay_distributions(s_dict, onshore=True, relative=True)
     plot_signal_decay_mean_log(s_dict, relative=True, onshore=True)
-    # todo following two lines currently do not output as expected
-    # plot_boxplots_per_model(s_dict, relative=True, onshore=True)
-    # plot_boxplots_per_model(s_dict, relative=False, onshore=True)
     for season in ["DJF", "MAM", "JJA", "SON"]:
         plot_signal_decay_quantiles(
             s_dict,
