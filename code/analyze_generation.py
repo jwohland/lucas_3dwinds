@@ -33,6 +33,19 @@ def build_CF_dict():
     return ds_dict
 
 
+def downsample_IDL(experiment):
+    """
+    Downsample hourly IDL capacity factors to 6h and then compute means
+    """
+    assert experiment in ["GRASS", "FOREST"]
+    ds = xr.open_mfdataset(data_path + "IDL" + "*" + experiment + ".nc").rename(
+        {"S_hub": "CF SWT120-3600"}
+    )
+    ds = ds.isel(time=np.arange(0, ds.time.size, 6))  # sample every 6th value
+    ds = ds["CF SWT120-3600"].mean(dim="time").compute().to_dataset(name="mean")
+    return ds
+
+
 def construct_histogram_data(ins, experiment, bins):
     """
     On a per timestep basis, commpute histogramm data for pre-defined bins.
@@ -156,21 +169,26 @@ def plot_relative_change(ds_dict):
     """
     plt.close()
     f, axs = plt.subplots(
-        nrows=2, sharex=True, sharey=True, figsize=(4, 8), **SUBPLOT_KW
+        nrows=3, sharex=True, sharey=True, figsize=(4, 12), **SUBPLOT_KW
     )
     plt.subplots_adjust(0.06, 0.13, 0.95, 0.97, hspace=0.05, wspace=0.05)
     cbar_ax = f.add_axes([0.1, 0.07, 0.8, 0.03])
-    for i, ins in enumerate(["GERICS", "IDL"]):
-        diff = (
-            (ds_dict[ins]["GRASS"]["mean"] - ds_dict[ins]["FOREST"]["mean"])
-            / ds_dict[ins]["FOREST"]["mean"]
-            * 100
-        )
+    for i, ins in enumerate(["GERICS", "IDL", "IDL-6h"]):
+        if ins == "IDL-6h":
+            print("Downsampling hourly IDL to 6h, this takes a minute or so.")
+            ds_grass = downsample_IDL("GRASS")["mean"]
+            print("Grass done")
+            ds_forest = downsample_IDL("FOREST")["mean"]
+            print("Forest done")
+        else:
+            ds_grass = ds_dict[ins]["GRASS"]["mean"]
+            ds_forest = ds_dict[ins]["FOREST"]["mean"]
+        diff = (ds_grass - ds_forest) / ds_forest * 100
         diff.plot(
             ax=axs[i],
             vmin=0,
-            vmax=45,
-            levels=10,
+            vmax=50,
+            levels=11,
             extend="max",
             cbar_ax=cbar_ax,
             cmap=plt.get_cmap("Reds"),
