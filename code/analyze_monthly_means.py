@@ -242,12 +242,8 @@ def plot_maps_per_height_paper(s_dict, season=None):
                     },
                 )
             else:
-                s_GRASS.plot(
-                    ax=ax[N, 0], **params_abs, add_colorbar=False
-                )
-                s_FOREST.plot(
-                    ax=ax[N, 1], **params_abs, add_colorbar=False
-                )
+                s_GRASS.plot(ax=ax[N, 0], **params_abs, add_colorbar=False)
+                s_FOREST.plot(ax=ax[N, 1], **params_abs, add_colorbar=False)
                 s_diff.plot(
                     ax=ax[N, 2],
                     **params_diff,
@@ -288,10 +284,95 @@ def plot_maps_per_height_paper(s_dict, season=None):
 
 
 ##########################################
+# Statistics as a table
+##########################################
+def stats_per_height(s_dict):
+    """
+    Computes key statistics per height level and outputs as a
+    latex table
+
+    Assumes that GERICS and IDL are on the same grid. That is, the additional
+    two grid box slices in GERISC have to be already removed.
+    """
+    for ins in ["GERICS", "IDL"]:
+        # Open data
+        diff = s_dict[ins].sel(experiment="GRASS") - s_dict[ins].sel(
+            experiment="FOREST"
+        )
+        diff = diff.mean(dim="time")
+        diff_land = restrict_to_land(diff, monthly=True)
+
+        # on and offshore means
+        mean_onshore_change = diff_land.mean(dim=["rlat", "rlon"])
+        mean_offshore_change = diff.where(diff_land.isnull()).mean(dim=["rlat", "rlon"])
+
+        # Fraction of onshore cells exceeding threshold
+        vertical_name = vertical_dim_dic[ins]
+        number_land_cells = (
+            diff_land.where(diff_land.S >= 0)["S"].isel({vertical_name: 0}).count()
+        )
+
+        def fraction_greater_threshold(diff_land, number_land_cells, threshold):
+            return (
+                (diff_land["S"] > threshold).sum(dim=["rlat", "rlon"])
+                / number_land_cells
+                * 100
+            )
+
+        percentage_greater_half = fraction_greater_threshold(
+            diff_land, number_land_cells, 0.5
+        )
+        percentage_greater_one = fraction_greater_threshold(
+            diff_land, number_land_cells, 1
+        )
+        percentage_greater_oneandhalf = fraction_greater_threshold(
+            diff_land, number_land_cells, 1.5
+        )
+
+        # Combine in dataframe
+        def _convert_rename(ds, name):
+            return ds.to_dataframe().rename(columns={"S": name})
+
+        mean_onshore_change = _convert_rename(
+            mean_onshore_change, "Mean onshore change [m/s]"
+        )
+        mean_offshore_change = _convert_rename(
+            mean_offshore_change, "Mean offshore change [m/s] "
+        )
+        percentage_greater_half = _convert_rename(
+            percentage_greater_half, "Onshore fraction greater 0.5 m/s [%]"
+        )
+        percentage_greater_one = _convert_rename(
+            percentage_greater_one, "Onshore fraction greater 1 m/s [%]"
+        )
+        percentage_greater_oneandhalf = _convert_rename(
+            percentage_greater_oneandhalf, "Onshore fraction greater 1.5 m/s [%]"
+        )
+
+        df = pd.concat(
+            [
+                mean_onshore_change,
+                mean_offshore_change,
+                percentage_greater_half,
+                percentage_greater_one,
+                percentage_greater_oneandhalf,
+            ],
+            axis=1,
+        )
+
+        # Add approximate height as index
+        df["approximate height [m]"] = [approximate_heights[ins][x] for x in df.index]
+        df = df.set_index("approximate height [m]").sort_index().round(2)
+
+        # Save
+        df[df.index < 350].style.to_latex(
+            "../output/Table_absolute_change_" + ins + ".txt"
+        )
+
+
+##########################################
 # Height analysis using relative changes
 ##########################################
-
-
 def plot_path(relative):
     if relative:
         return "../plots/exploration/relative_differences/"
@@ -508,6 +589,7 @@ if __name__ == "__main__":
         plot_boxplots_per_model(s_dict, relative=False, season=season)
     # Onshore decay computation needs corrections for GERICS because grid is too large
     s_dict["GERICS"] = s_dict["GERICS"].isel(rlat=slice(0, -1), rlon=slice(0, -1))
+    stats_per_height(s_dict)
     plot_signal_decay_quantiles(
         s_dict, relative=False, onshore=True, quantiles=[0.10, 0.50, 0.90]
     )
