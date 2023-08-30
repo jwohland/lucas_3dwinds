@@ -432,17 +432,22 @@ def plot_decay_quantiles_all(s_dict):
             )
             ax.set_ylabel("")
             ax.set_xlim(xmax=700)
+            ax.set_ylim(ymin=-0.02)
             ax.set_xticks([30, 100, 200, 400])
             ax.set_xticklabels([30, 100, 200, 400])
-            ax.set_ylim(ymin=-0.02)
             if j == 0:
                 ax.set_title(str(int(q * 100)) + "th percentile")
     add_letters(axs, y=1.05, x=-0.15)
     sns.move_legend(axs[0, 1], "center", ncol=5, bbox_to_anchor=(0.5, -0.15))
     for i in range(2):
+        # Clean up axis labels
         axs[i, 0].set_ylabel("Wind speed change [m/s]")
         axs[i, 0].set_xlabel("")
         axs[i, 2].set_xlabel("")
+        # set to same ranges in each percentile
+        axs[i, 0].set_ylim(ymax=3.1)
+        axs[i, 1].set_ylim(ymax=1.35)
+        axs[i, 2].set_ylim(ymax=0.95)
     axs[1, 1].set_xlabel("Approximate height [m]")
     plt.subplots_adjust(left=0.07, right=0.98, top=0.95, bottom=0.08, hspace=0.35)
     plt.savefig(plot_path(relative=False) + "/Signal_decay_quantiles_all.jpeg", dpi=600)
