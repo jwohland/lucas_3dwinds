@@ -1,6 +1,6 @@
-import pandas as pd
 from utils import *
 from params import approximate_heights, roughness_dict
+import pandas as pd
 import seaborn as sns
 
 plt.rc("axes.spines", top=False, right=False)
@@ -379,52 +379,73 @@ def plot_path(relative):
         return "../plots/exploration/absolute_differences/"
 
 
-def plot_signal_decay_quantiles(
-    s_dict,
-    relative=False,
-    season=None,
-    onshore=False,
-    quantiles=[0.50, 0.90, 0.95],
-    monthly=True,
-):
+def plot_decay_quantiles_all(s_dict):
     """
-    # Signal decay with height for 50th, 90th and 95th percentile
+    Plot signal decay (GRASS-FOREST) at heights below 400m
+    seperated by model, season, and quantile
     """
-    df = calculate_changes(
-        s_dict=s_dict,
-        relative=relative,
-        season=season,
-        onshore=onshore,
-        monthly=monthly,
-    )
-    f, ax = plt.subplots(ncols=3, figsize=(15, 5))
-    for i, q in enumerate(quantiles):
-        sns.scatterplot(
-            ax=ax[i],
-            data=df.groupby(["institution", "height"]).quantile(q),
-            x="height",
-            y="S",
-            hue="institution",
-            alpha=0.8,
+    df_list = []
+    for season in ["DJF", "MAM", "JJA", "SON", None]:
+        df = calculate_changes(
+            s_dict=s_dict,
+            relative=False,
+            season=season,
+            onshore=True,
+            monthly=True,
         )
-        ax[i].set_title(str(int(q * 100)) + "th Percentile")
-        ax[i].set_xlim(xmax=1000, xmin=0)
-        ax[i].set_ylim(ymin=0)
-        ax[i].set_ylabel("")
-        ax[i].set_xlabel("Approximate height")
-    if relative:
-        ax[0].set_ylabel("GRASS - FOREST normalized with mean lowest level")
-    else:
-        ax[0].set_ylabel("GRASS - FOREST [m/s]")
-    figname = "Signal_decay_quantiles"
-    if season:
-        figname += "_" + season
-    if onshore:
-        figname += "_onshore"
-    plt.savefig(
-        plot_path(relative) + figname + ".jpeg",
-        dpi=300,
-    )
+        for quantile in [0.1, 0.5, 0.9]:
+            df_tmp = (
+                df.groupby(["institution", "height"])
+                .quantile(quantile)
+                .drop(columns=["rlat", "rlon"])
+            )
+            if season == None:
+                df_tmp["season"] = "full year"
+            else:
+                df_tmp["season"] = season
+            df_tmp["quantile"] = quantile
+            df_list.append(df_tmp)
+    df_combined = pd.concat(df_list)
+
+    f, axs = plt.subplots(ncols=3, nrows=2, figsize=(9, 6), sharex=True)
+    for i, q in enumerate([0.9, 0.5, 0.1]):
+        for j, ins in enumerate(["IDL", "GERICS"]):
+            ax = axs[j, i]
+            ax.set_xscale("log")
+            df_plot = df_combined[df_combined["quantile"] == q].reset_index()
+            df_plot = df_plot[df_plot["institution"] == ins]
+            if (i == 1) & (j == 0):
+                legend = "brief"
+            else:
+                legend = False
+            sns.scatterplot(
+                ax=ax,
+                data=df_plot,
+                hue="season",
+                hue_order=["full year", "DJF", "MAM", "JJA", "SON"],
+                x="height",
+                y="S",
+                legend=legend,
+                palette="tab10",
+                s=50,
+                alpha=0.8,
+            )
+            ax.set_ylabel("")
+            ax.set_xlim(xmax=700)
+            ax.set_xticks([30, 100, 200, 400])
+            ax.set_xticklabels([30, 100, 200, 400])
+            ax.set_ylim(ymin=-0.02)
+            if j == 0:
+                ax.set_title(str(int(q * 100)) + "th percentile")
+    add_letters(axs, y=1.05, x=-0.15)
+    sns.move_legend(axs[0, 1], "center", ncol=5, bbox_to_anchor=(0.5, -0.15))
+    for i in range(2):
+        axs[i, 0].set_ylabel("Wind speed change [m/s]")
+        axs[i, 0].set_xlabel("")
+        axs[i, 2].set_xlabel("")
+    axs[1, 1].set_xlabel("Approximate height [m]")
+    plt.subplots_adjust(left=0.07, right=0.98, top=0.95, bottom=0.08, hspace=0.35)
+    plt.savefig(plot_path(relative=False) + "/Signal_decay_quantiles_all.jpeg", dpi=600)
 
 
 def plot_signal_decay_distributions(s_dict, relative, onshore=False, monthly=True):
@@ -588,16 +609,6 @@ if __name__ == "__main__":
     # Onshore decay computation needs corrections for GERICS because grid is too large
     s_dict["GERICS"] = s_dict["GERICS"].isel(rlat=slice(0, -1), rlon=slice(0, -1))
     stats_per_height(s_dict)
-    plot_signal_decay_quantiles(
-        s_dict, relative=False, onshore=True, quantiles=[0.10, 0.50, 0.90]
-    )
+    plot_decay_quantiles_all(s_dict)
     plot_signal_decay_distributions(s_dict, onshore=True, relative=True)
     plot_signal_decay_mean_log(s_dict, relative=True, onshore=True)
-    for season in ["DJF", "MAM", "JJA", "SON"]:
-        plot_signal_decay_quantiles(
-            s_dict,
-            relative=False,
-            onshore=True,
-            season=season,
-            quantiles=[0.10, 0.50, 0.90],
-        )
