@@ -120,6 +120,7 @@ def plot_mean_maps(ds_dict):
                 vmin=0.2,
                 vmax=0.65,
                 levels=10,
+                extend="both",
                 cbar_ax=cbar_ax,
                 cbar_kwargs={
                     "label": "Mean capacity factor",
