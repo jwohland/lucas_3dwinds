@@ -14,7 +14,7 @@ data_path = "../output/generation/"
 ##################################
 
 
-def build_CF_dict(downsample):
+def build_CF_dict(downsample=False):
     """
     Build up a big dataset that contains means of wind power generation
 
