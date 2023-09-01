@@ -22,7 +22,7 @@ python compute_monthly_winds.py
 python compute_sub-daily_focusareas.py
 
 # Analysis
-python analyze_monthly_winds.py
+python analyze_monthly_means.py
 python analyze_subdaily.py
 python analyze_summernights_IDL.py
 
