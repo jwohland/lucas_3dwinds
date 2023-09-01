@@ -14,21 +14,31 @@ data_path = "../output/generation/"
 ##################################
 
 
-def build_CF_dict():
+def build_CF_dict(downsample):
     """
     Build up a big dataset that contains means of wind power generation
+
+    downsample: True or False
+    controls whether the hourly IDL data should be downsampled to 6hr (as GERICS)
+    before computing the mean
     """
     ds_dict = {}
     for ins in ["GERICS", "IDL"]:
         ds_dict[ins] = {}
         for experiment in ["GRASS", "FOREST"]:
             print(experiment)
-            ds = xr.open_mfdataset(data_path + ins + "*" + experiment + ".nc").rename(
-                {"S_hub": "CF SWT120-3600"}
-            )
-            ds_tmp = (
-                ds["CF SWT120-3600"].mean(dim="time").compute().to_dataset(name="mean")
-            )
+            if (downsample) & (ins == "IDL"):
+                ds_tmp = downsample_IDL(experiment)
+            else:
+                ds = xr.open_mfdataset(
+                    data_path + ins + "*" + experiment + ".nc"
+                ).rename({"S_hub": "CF SWT120-3600"})
+                ds_tmp = (
+                    ds["CF SWT120-3600"]
+                    .mean(dim="time")
+                    .compute()
+                    .to_dataset(name="mean")
+                )
             ds_dict[ins][experiment] = ds_tmp
     return ds_dict
 
@@ -100,19 +110,17 @@ def compute_concatenated_histograms(save=True):
 ##################################
 # Plotting functions
 ##################################
-def plot_mean_maps(ds_dict):
+def plot_mean_maps(ds_dict, filename_extension=""):
     """
     Make a 3x2 plot displaying mean wind power generation
         per model (rows)
         per experiment and as GRASS-FOREST difference (columns)
     """
     plt.close()
-    f, axs = plt.subplots(
-        ncols=3, nrows=2, sharex=True, sharey=True, figsize=(12, 6), **SUBPLOT_KW
-    )
-    plt.subplots_adjust(0.07, 0.2, 0.92, 0.97, hspace=0.05, wspace=0.05)
-    cbar_ax = f.add_axes([0.02, 0.1, 0.63, 0.03])
-    cbar_ax_diff = f.add_axes([0.66, 0.1, 0.3, 0.03])
+    f, axs = plt.subplots(ncols=3, nrows=2, figsize=(10, 7), **SUBPLOT_KW)
+    plt.subplots_adjust(0.04, 0.13, 0.97, 0.95, hspace=0.06, wspace=0.06)
+    cbar_ax = f.add_axes([0.02, 0.07, 0.63, 0.03])
+    cbar_ax_diff = f.add_axes([0.673, 0.07, 0.3, 0.03])
     for i, ins in enumerate(["GERICS", "IDL"]):
         for j, experiment in enumerate(["GRASS", "FOREST"]):
             ds_dict[ins][experiment]["mean"].plot(
@@ -147,20 +155,23 @@ def plot_mean_maps(ds_dict):
         axs[0, 1].set_title("FOREST")
         axs[0, 2].set_title("GRASS - FOREST")
         axs[i, 0].text(
-            -0.4,
+            -0.1,
             0.5,
             ins,
             verticalalignment="center",
             transform=axs[i, 0].transAxes,
             rotation=90,
+            fontsize=12,
         )
 
     for ax in axs.flatten():
         ax.set_xlabel("")
         add_coast_boarders(ax)
-    add_letters(axs)
+    add_letters(axs, x=-0.03, y=1.02, fs=12)
 
-    plt.savefig("../plots/generation/Mean_CF_change_maps.png", dpi=300)
+    plt.savefig(
+        "../plots/generation/Mean_CF_change_maps" + filename_extension + ".png", dpi=300
+    )
 
 
 def plot_relative_change(ds_dict):
@@ -260,3 +271,6 @@ if __name__ == "__main__":
     df_histograms = compute_concatenated_histograms(save=True)
     plot_timestep_histograms(df_histograms)
     plot_mean_histograms(ds_dict)
+    # check that results are robust after downsampling
+    ds_dict = build_CF_dict(True)
+    plot_mean_maps(ds_dict, filename_extension="_downsampled")
