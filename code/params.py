@@ -32,6 +32,14 @@ roughness_dict["ETH"]["NET"] = 0.7
 roughness_dict["ETH"]["BDT"] = 0.83
 roughness_dict["ETH"]["C3"] = 0.048
 
-roughness_dict["GERICS"]["NET"] = 1.4
-roughness_dict["GERICS"]["BDT"] = 1
-roughness_dict["GERICS"]["C3"] = 0.05
+# The GERICS roughness lengths can not be directly compared to the ones from the other models
+# because GERICS computes effective roughness as a combination of the land-use roughness
+# and roughness due to sub-grid scale orography. Instead of the Breil et al. values, we therefore
+# use the effective roughness lengths.
+# Since we only have the effective roughness in the FOREST simulations (without distinction between
+# NET and BDT, we assume that both are identical. In the rest of the analysis, the effective
+# roughness is computed as 0.5 * ( NET + BDT ), which then ends up being correct.
+# Computation of those values is documented in code/compute_effective_roughness_GERICS.py
+roughness_dict["GERICS"]["NET"] = 1.686
+roughness_dict["GERICS"]["BDT"] = 1.686
+roughness_dict["GERICS"]["C3"] = 0.693
