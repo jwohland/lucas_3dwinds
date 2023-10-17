@@ -499,7 +499,7 @@ def plot_signal_decay_mean_log(s_dict, relative=False, onshore=False, monthly=Tr
         data=(np.arange(1, 30) ** (1.0 / 7)),
         columns=["S"],
     )
-    df_synthetic["institution"] = "Power law (unmodified)"
+    df_synthetic["institution"] = "Power law"
     df_synthetic["relative_height"] = df_synthetic.index
     df_mean = pd.concat([df_mean, df_synthetic.set_index("institution")])
 
@@ -507,7 +507,7 @@ def plot_signal_decay_mean_log(s_dict, relative=False, onshore=False, monthly=Tr
     def log_law(relative_heights, z_zero=0.05, z_low=30, d=3):
         """
         z_zero = 0.05  # roughly the mean accross models over C3 grass
-        z_low = 30  # lowest level at 10m
+        z_low = 30  # lowest level, defaults to 30m which is approximately the lowest level in IDL and GERICS
         d = 3  # m guessed discplacement height
         """
 
@@ -522,7 +522,7 @@ def plot_signal_decay_mean_log(s_dict, relative=False, onshore=False, monthly=Tr
         data=log_law(np.arange(1, 30)),
         columns=["S"],
     )
-    df_synthetic["institution"] = "Log law (unmodified)"
+    df_synthetic["institution"] = "Log law"
     df_synthetic["relative_height"] = df_synthetic.index
     df_mean = pd.concat([df_mean, df_synthetic.set_index("institution")])
 
@@ -554,20 +554,85 @@ def plot_signal_decay_mean_log(s_dict, relative=False, onshore=False, monthly=Tr
         df_synthetic["relative_height"] = df_synthetic.index
         df_mean = pd.concat([df_mean, df_synthetic.set_index("institution")])
 
-    # Just looking at the mean
-    f, ax = plt.subplots()
-    sns.scatterplot(
-        data=df_mean, x="relative_height", y="S", hue="institution", alpha=0.7
+    df_mean["S"] *= 100  # convert to per cent change
+    # Split dataset by type to allow plotting with different style
+    # (line vs. scatter) and using multiple legends
+    df_common = df_mean.loc[["Power law", "Log law"]].reset_index()
+    df_common.rename(columns={"institution": "Common extrapolation"}, inplace=True)
+    df_model = df_mean.loc[["IDL", "GERICS"]].reset_index()
+    df_model.rename(columns={"institution": "Model output"}, inplace=True)
+    df_aware = df_mean.loc[["Log law IDL", "Log law GERICS"]].reset_index()
+    df_aware.rename(
+        columns={"institution": "Land-use aware extrapolation"}, inplace=True
     )
+
+    # Plotting
+    f, ax = plt.subplots()
+    plot_params = {"x": "relative_height", "y": "S"}
+    ax1 = sns.lineplot(
+        data=df_common[df_common["relative_height"] < 21],  # limit x values
+        hue="Common extrapolation",
+        alpha=1,
+        linewidth=2,
+        palette="Greens",
+        **plot_params,
+    )
+    first_legend = ax1.legend_
+    ax.add_artist(first_legend)
+
+    ax2 = sns.scatterplot(
+        data=df_model[df_model["relative_height"] < 21],
+        hue="Model output",
+        palette="dark",
+        s=70,
+        **plot_params,
+    )
+    sns.lineplot(
+        data=df_aware[df_common["relative_height"] < 21],
+        hue="Land-use aware extrapolation",
+        alpha=1,
+        linewidth=2,
+        palette="dark",
+        **plot_params,
+    )
+    h, l = ax.get_legend_handles_labels()
+    ax.legend(h[2:], l[2:], title="Model or adapted extrapolation", loc="lower left")
     ax.set_xscale("log")
-    ax.set_ylabel("GRASS - FOREST normalized with mean lowest level")
-    ax.set_xlabel("Height / height of lowest model level")
+    ax.set_ylabel("Relative wind speed change [%]")
+    ax.set_xlabel("Relative height")
+    ax.set_xlim(xmin=0.91, xmax=45)
+    ax.set_ylim(ymin=20, ymax=160)
+    ax.axhspan(100, 160, facecolor="g", alpha=0.08)
+    ax.axhspan(20, 100, facecolor="y", alpha=0.08)
+    # Add text to y>0 and y<0
+    text_params = {
+        "weight": "heavy",
+        "ha": "center",
+        "va": "center",
+    }
+    plt.text(
+        32,
+        130,
+        " Surface \n change \n grows \n with \n height",
+        color="g",
+        **text_params,
+    )
+    plt.text(
+        32,
+        60,
+        " Surface \n change \n decays \n with \n height",
+        color="y",
+        **text_params,
+    )
+    ax.set_xticks([1, 5, 10])
+    ax.set_xticklabels(["1", "5", "10"])
+    plt.tight_layout()
     figname = "Signal_decay_mean_log"
     if onshore:
         figname += "_onshore"
     plt.savefig(
         plot_path(relative) + figname + ".jpeg",
-        dpi=300,
+        dpi=600,
     )
 
 
