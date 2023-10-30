@@ -1,4 +1,4 @@
-# lucas_3dwinds
+# Code underlying analysis reported in "Extrapolation is not enough: Impacts of extreme land-use change on wind profiles and wind energy according to regional climate models" by Wohland et al.
 
 Analysis of land-use change impacts on 3d wind fields. 
 
