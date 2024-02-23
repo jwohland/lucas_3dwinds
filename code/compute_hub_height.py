@@ -63,7 +63,7 @@ def open_wind_geopotential(ins, year, experiment):
     return ds_wind
 
 
-def calculate_hub_height_xr(ds, institution, hub_height=120):
+def calculate_hub_height_xr(ds, institution, hub_height=90):
     """
     Calculates wind speeds at hub height using data at evolving heights and
     the power law. Execution is done for one timestep here.
