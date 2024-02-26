@@ -268,6 +268,7 @@ def plot_mean_histograms(ds_dict):
 if __name__ == "__main__":
     ds_dict = build_CF_dict()
     plot_mean_maps(ds_dict)
+    plot_relative_change(ds_dict)
     df_histograms = compute_concatenated_histograms(save=True)
     plot_timestep_histograms(df_histograms)
     plot_mean_histograms(ds_dict)
