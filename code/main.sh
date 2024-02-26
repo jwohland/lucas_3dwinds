@@ -32,4 +32,4 @@ python compute_hub_height.py
 python compute_power.py
 
 # Evaluation power generation
-python analyze_generation
+python analyze_generation.py
