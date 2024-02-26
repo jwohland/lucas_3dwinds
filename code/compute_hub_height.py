@@ -99,7 +99,9 @@ def calculate_hub_height_xr(ds, institution, hub_height=90):
     return ds_hub
 
 
-def plot_illustration_location(ds=None, ins="GERICS", year="2000", experiment="GRASS"):
+def plot_illustration_location(
+    ds=None, ins="GERICS", year="2000", experiment="GRASS", z_hub=90
+):
     """
     Makes a plot that illustrates the approach, showing
         a) wind speed vs. height scatter plot for 8 locations including the fitting profiles
@@ -117,7 +119,7 @@ def plot_illustration_location(ds=None, ins="GERICS", year="2000", experiment="G
         y = ds_tmp.S.values
         alpha = np.log(y[0] / y[1]) / np.log(x[0] / x[1])
         xs = np.arange(5, 200, 1)
-        y_hub = y[1] * (120 / x[1]) ** alpha
+        y_hub = y[1] * (z_hub / x[1]) ** alpha
         if i < 8:
             ax[0].scatter(x, y, color=colors[i])
             ax[0].plot(
@@ -127,7 +129,7 @@ def plot_illustration_location(ds=None, ins="GERICS", year="2000", experiment="G
                 color=colors[i],
             )
             ax[0].scatter(
-                120,
+                z_hub,
                 y_hub,
                 label="hub height wind = " + str(np.round(y_hub, 2)),
                 marker="*",
@@ -246,3 +248,4 @@ if __name__ == "__main__":
             run = Run_parallel(ins, experiment)
             with Pool(30) as pool:
                 pool.map(run.run_parallel, [str(x) for x in np.arange(1986, 2016)])
+    plot_illustration_location()
