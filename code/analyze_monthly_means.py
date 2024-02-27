@@ -2,11 +2,15 @@ from utils import *
 from params import approximate_heights, roughness_dict
 import pandas as pd
 import seaborn as sns
+import numpy as np
+import matplotlib.colors as mcolors
+
 
 plt.rc("axes.spines", top=False, right=False)
 
 data_path = "../data/monthly/"
 institutions = ["IDL", "ETH", "GERICS", "OUR", "BCCR"]  # JLU not yet preprocessed
+np.random.seed(0)  # fix seed for reproducibility
 
 
 def select_lowest_level(ds, institution):
@@ -384,6 +388,18 @@ def plot_decay_quantiles_all(s_dict):
     Plot signal decay (GRASS-FOREST) at heights below 400m
     seperated by model, season, and quantile
     """
+
+    def _compute_offsets(N=10, width=10):
+        """
+        Helper function to select values from a small percentile band (+- 2 width/2) around
+        a chosen percentile threshold.
+        """
+        offsets = np.random.random(size=N)  # random values between 0 and 1
+        offsets -= 0.5  # between -0.5 and 0.5
+        offsets /= 100  # between -0.005 and 0.005
+        offsets *= width  # scale to cover desired width
+        return offsets
+
     df_list = []
     for season in ["DJF", "MAM", "JJA", "SON", None]:
         df = calculate_changes(
@@ -394,11 +410,19 @@ def plot_decay_quantiles_all(s_dict):
             monthly=True,
         )
         for quantile in [0.1, 0.5, 0.9]:
-            df_tmp = (
-                df.groupby(["institution", "height"])
-                .quantile(quantile)
-                .drop(columns=["rlat", "rlon"])
-            )
+            offsets = _compute_offsets(width=10)
+            df_tmp_list = []
+            for offset in offsets:
+                df_tmp_list.append(
+                    df.groupby(["institution", "height"])
+                    .quantile(quantile + offset)
+                    .drop(columns=["rlat", "rlon"])
+                )
+            df_tmp = pd.concat(df_tmp_list)
+            S_mean = df_tmp.groupby(["institution", "height"]).mean()
+            S_std = df_tmp.groupby(["institution", "height"]).std()
+            S_mean["S_std"] = S_std
+            df_tmp = S_mean  # rename to align with previous name convention
             if season == None:
                 df_tmp["season"] = "full year"
             else:
@@ -406,7 +430,9 @@ def plot_decay_quantiles_all(s_dict):
             df_tmp["quantile"] = quantile
             df_list.append(df_tmp)
     df_combined = pd.concat(df_list)
-
+    ###########
+    # Plotting
+    ###########
     f, axs = plt.subplots(ncols=3, nrows=2, figsize=(9, 6), sharex=True)
     for i, q in enumerate([0.9, 0.5, 0.1]):
         for j, ins in enumerate(["IDL", "GERICS"]):
@@ -418,18 +444,33 @@ def plot_decay_quantiles_all(s_dict):
                 legend = "brief"
             else:
                 legend = False
-            sns.scatterplot(
+            seasons = ["full year", "DJF", "MAM", "JJA", "SON"]
+            sns.lineplot(
                 ax=ax,
                 data=df_plot,
                 hue="season",
-                hue_order=["full year", "DJF", "MAM", "JJA", "SON"],
+                hue_order=seasons,
                 x="height",
                 y="S",
                 legend=legend,
                 palette="tab10",
-                s=50,
+                markersize=12,
                 alpha=0.8,
+                marker=".",
+                linewidth=0,
             )
+            # Add errorbars corresponding to standard error (std/sqrt(N))
+            for i_error, season in enumerate(seasons):
+                df_plot_tmp = df_plot[df_plot.season == season]
+                ax.errorbar(
+                    x=df_plot_tmp.height,
+                    y=df_plot_tmp.S,
+                    yerr=(df_plot_tmp.S_std / np.sqrt(10)),
+                    ecolor=list(mcolors.TABLEAU_COLORS)[i_error],
+                    ls="",
+                    capsize=3,
+                    alpha=0.8,
+                )
             ax.set_ylabel("")
             ax.set_xlim(xmax=700)
             ax.set_ylim(ymin=-0.02)
