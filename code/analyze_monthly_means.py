@@ -486,9 +486,11 @@ def plot_decay_quantiles_all(s_dict):
         axs[i, 0].set_xlabel("")
         axs[i, 2].set_xlabel("")
         # set to same ranges in each percentile
-        axs[i, 0].set_ylim(ymax=3.1)
+        axs[i, 0].set_ylim(ymax=3.25)
         axs[i, 1].set_ylim(ymax=1.35)
-        axs[i, 2].set_ylim(ymax=0.95)
+        axs[i, 2].set_ylim(ymax=0.95, ymin=-0.1)
+        # add zero line when y goes negative
+        axs[i, 2].plot([5, 650], [0, 0], ls="--", color="grey")
     axs[1, 1].set_xlabel("Approximate height [m]")
     plt.subplots_adjust(left=0.07, right=0.98, top=0.95, bottom=0.08, hspace=0.35)
     plt.savefig(plot_path(relative=False) + "/Signal_decay_quantiles_all.jpeg", dpi=600)
