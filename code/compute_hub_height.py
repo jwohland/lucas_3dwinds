@@ -39,8 +39,8 @@ def open_wind_geopotential(ins, year, experiment):
             + year
             + "123123.nc"
         ).isel(
-            mlev=[1, 2]
-        )  # only using levels 1 and 2 corresponding to around 97m and 107m
+            mlev=[0, 1]
+        )  # only using levels 0 and 1 corresponding to around 28m and 97m
         ds_IDL_oro = xr.open_dataset(
             "../data/IDL/orog_EUR-44_ECMWF-ERAINT_LUCAS_EVAL_r1i1p1_IDL_WRFV381D_v1_fx.nc"
         )
