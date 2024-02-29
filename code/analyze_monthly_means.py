@@ -547,11 +547,11 @@ def plot_signal_decay_mean_log(s_dict, relative=False, onshore=False, monthly=Tr
     df_mean = pd.concat([df_mean, df_synthetic.set_index("institution")])
 
     # Add synthetic -- log-law
-    def log_law(relative_heights, z_zero=0.05, z_low=30, d=3):
+    def log_law(relative_heights, z_zero=0.05, z_low=30, d=0):
         """
         z_zero = 0.05  # roughly the mean accross models over C3 grass
         z_low = 30  # lowest level, defaults to 30m which is approximately the lowest level in IDL and GERICS
-        d = 3  # m guessed discplacement height
+        d = 0  # default displacement height is set to zero
         """
 
         s = [
@@ -577,13 +577,12 @@ def plot_signal_decay_mean_log(s_dict, relative=False, onshore=False, monthly=Tr
             z_low = 28
         mean_land = compute_mean_onshore_surface_change(s_dict)
         grass_profile = log_law(
-            np.arange(1, 30), roughness_dict[ins]["C3"], z_low=z_low, d=0
+            np.arange(1, 30), roughness_dict[ins]["C3"], z_low=z_low
         )
         forest_profile = log_law(
             np.arange(1, 30),
             0.5 * (roughness_dict[ins]["NET"] + roughness_dict[ins]["BDT"]),
             z_low=z_low,
-            d=0,
         )  # Mean of both forest types
         diff_profile = np.multiply(
             mean_land["GRASS"][ins], grass_profile
