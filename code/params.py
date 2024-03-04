@@ -24,14 +24,6 @@ roughness_dict["IDL"]["NET"] = 1.09
 roughness_dict["IDL"]["BDT"] = 0.8
 roughness_dict["IDL"]["C3"] = 0.12
 
-roughness_dict["JLU"]["NET"] = 1
-roughness_dict["JLU"]["BDT"] = 1
-roughness_dict["JLU"]["C3"] = 0.03
-
-roughness_dict["ETH"]["NET"] = 0.7
-roughness_dict["ETH"]["BDT"] = 0.83
-roughness_dict["ETH"]["C3"] = 0.048
-
 # The GERICS roughness lengths can not be directly compared to the ones from the other models
 # because GERICS computes effective roughness as a combination of the land-use roughness
 # and roughness due to sub-grid scale orography. Instead of the Breil et al. values, we therefore
