@@ -28,6 +28,7 @@ def open_wind_geopotential(ins, year, experiment):
         )
         ds_wind["height"] = ds_GERICS_height
     elif ins == "IDL":
+        mlevs = [0, 1]  # only using levels 0 and 1 corresponding to around 28m and 97m
         ds_IDL_zg = xr.open_dataset(
             "../data/IDL/"
             + experiment
@@ -39,14 +40,14 @@ def open_wind_geopotential(ins, year, experiment):
             + year
             + "123123.nc"
         ).isel(
-            mlev=[0, 1]
-        )  # only using levels 0 and 1 corresponding to around 28m and 97m
+            mlev=mlevs
+        )
         ds_IDL_oro = xr.open_dataset(
             "../data/IDL/orog_EUR-44_ECMWF-ERAINT_LUCAS_EVAL_r1i1p1_IDL_WRFV381D_v1_fx.nc"
         )
         ds_wind = (
             xr.open_dataset(data_dir + "IDL/" + experiment + "/S/" + year + ".nc")
-            .isel(mlev=[1, 2])
+            .isel(mlev=mlevs)
             .drop(["rotated_pole", "time_bnds"])
         )
         # coordinates are off by a rounding error. Corrected here
