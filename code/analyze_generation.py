@@ -221,26 +221,6 @@ def plot_relative_change(ds_dict):
     plt.savefig("../plots/generation/Mean_CF_change_relative_diff_maps.png", dpi=300)
 
 
-def plot_timestep_histograms(df):
-    """
-    Plot capacity factor histograms evaluated per timestep
-    """
-    f, axs = plt.subplots(figsize=(10, 7), nrows=2, sharey=True)
-    for i, ins in enumerate(["GERICS", "IDL"]):
-        sns.barplot(
-            df[df.model == ins], x="CF", y="relative_count", hue="experiment", ax=axs[i]
-        )
-        axs[i].set_title(ins)
-    axs[1].legend_.remove()
-    axs[0].set_xlabel("")
-    axs[1].set_xlabel("Onshore capacity factor")
-    for i in range(2):
-        axs[i].set_ylabel("Relative count [%]")
-        axs[i].set_ylim(ymax=28)
-    plt.tight_layout()
-    plt.savefig("../plots/generation/CF_distribution.png", dpi=300)
-
-
 def plot_mean_histograms(ds_dict):
     """ """
     f, axs = plt.subplots(nrows=2, sharex=True, sharey=True, figsize=(4, 8))
@@ -270,7 +250,6 @@ if __name__ == "__main__":
     plot_mean_maps(ds_dict)
     plot_relative_change(ds_dict)
     df_histograms = compute_concatenated_histograms(save=True)
-    plot_timestep_histograms(df_histograms)
     plot_mean_histograms(ds_dict)
     # check that results are robust after downsampling
     ds_dict = build_CF_dict(True)
