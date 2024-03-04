@@ -12,7 +12,7 @@ Please reference above  publication if you decide to use (parts of) this code fo
 
 You can create the conda environment by running
 
-> conda env create --file lucas_3dwinds.txt
+> conda env create --file lucas_3dwinds.yaml
 
 Next, you can activate it with
 
@@ -36,7 +36,7 @@ Lastly, scripts that provide plots or data for Tables are named `analyze_` follo
 In addition, there are two scripts providing additional functions (i.e., `utils` and `utils_from_CESM2energy`) and two 
 files containing parameters (`params.py` and `approximate_heights.yaml`).
 
-The environment is provided as `lucas_3dwinds.txt`
+The environment is provided as `lucas_3dwinds.yaml`
 
 
 ## Input data
