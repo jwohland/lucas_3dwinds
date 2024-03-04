@@ -1,5 +1,6 @@
-name: /Users/jwohland/mambaforge/envs/lucas_3dwinds
+name: lucas_3dwinds
 channels:
+  - conda-forge
   - defaults
 dependencies:
   - python=3.9
@@ -9,7 +10,12 @@ dependencies:
   - scipy
   - matplotlib
   - pandas
+  - ipykernel
   - dask
-  - netCDF4
+  - netcdf4
   - bottleneck
-prefix: /Users/jwohland/mambaforge/envs/lucas_3dwinds
+  - ca-certificates
+  - certifi
+  - openssl
+  - pyyaml
+  - cartopy
