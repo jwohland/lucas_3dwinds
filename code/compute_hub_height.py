@@ -39,9 +39,7 @@ def open_wind_geopotential(ins, year, experiment):
             + "010100-"
             + year
             + "123123.nc"
-        ).isel(
-            mlev=mlevs
-        )
+        ).isel(mlev=mlevs)
         ds_IDL_oro = xr.open_dataset(
             "../data/IDL/orog_EUR-44_ECMWF-ERAINT_LUCAS_EVAL_r1i1p1_IDL_WRFV381D_v1_fx.nc"
         )
@@ -153,74 +151,6 @@ def plot_illustration_location(
         + ".png",
         dpi=300,
     )
-
-
-def plot_illustration_map(ds=None, ins="GERICS", year="2000", experiment="GRASS"):
-    if not ds:  # load data if not externally provided
-        ds = open_wind_geopotential(ins, year, experiment)
-    ds_tmp = ds.isel(time=1)
-    ds_hub = calculate_hub_height_xr(ds_tmp, ins)
-    height_max, height_min = 26, 27  # Correct levels for GERICS
-
-    f, axs = plt.subplots(ncols=3, nrows=2, figsize=(16, 8))
-    plt.subplots_adjust(bottom=0.25)
-    cbar_ax = f.add_axes([0.15, 0.12, 0.7, 0.03])
-    # Distributions
-    ds_tmp["S"].sel(lev=height_min).plot.hist(
-        ax=axs[0, 0], bins=100, xticks=np.arange(0, 31, 3)
-    )
-    axs[0, 0].axvline(x=ds_tmp["S"].sel(lev=height_min).mean(), ls="-", color="red")
-
-    ds_hub["S_hub"].plot.hist(ax=axs[0, 1], bins=100, xticks=np.arange(0, 31, 3))
-    axs[0, 1].axvline(x=ds_hub["S_hub"].mean(), ls="-", color="red")
-
-    ds_tmp["S"].sel(lev=height_max).plot.hist(
-        ax=axs[0, 2], bins=100, xticks=np.arange(0, 31, 3)
-    )
-    axs[0, 2].axvline(x=ds_tmp["S"].sel(lev=height_max).mean(), ls="-", color="red")
-    # Maps
-    ds_tmp["S"].sel(lev=height_min).plot(
-        ax=axs[1, 0], vmin=0, vmax=35, add_colorbar=False, levels=15
-    )
-    ds_hub["S_hub"].plot(ax=axs[1, 1], vmin=0, vmax=35, add_colorbar=False, levels=15)
-    ds_tmp["S"].sel(lev=height_max).plot(
-        ax=axs[1, 2],
-        vmin=0,
-        vmax=35,
-        levels=15,
-        cbar_ax=cbar_ax,
-        cbar_kwargs={"orientation": "horizontal"},
-    )
-
-    for i, title in enumerate(
-        ["low level about 30m", "hub height 120m", "upper level about 147m"]
-    ):
-        axs[0, i].set_title(title)
-        axs[1, i].set_title("")
-        axs[1, i].set_ylabel("")
-        axs[1, i].set_xlabel("")
-    plt.tight_layout()
-    plt.savefig(
-        "../plots/"
-        + experiment
-        + "_example_wind_interpolation_"
-        + ins
-        + "_"
-        + year
-        + "_maps.png",
-        dpi=300,
-    )
-
-
-def make_illustration_plots():
-    ins = "GERICS"
-    year = "2000"
-    experiment = "GRASS"
-    ds_wind = open_wind_geopotential(ins, year, experiment)
-    plot_illustration_location(
-        ds_wind
-    )  # Create example plot with profiles for a few locations at one timestep
-    plot_illustration_map(ds_wind)
 
 
 class Run_parallel:
