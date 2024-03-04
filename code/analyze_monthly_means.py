@@ -9,7 +9,7 @@ import matplotlib.colors as mcolors
 plt.rc("axes.spines", top=False, right=False)
 
 data_path = "../data/monthly/"
-institutions = ["IDL", "ETH", "GERICS", "OUR", "BCCR"]  # JLU not yet preprocessed
+institutions = ["IDL", "GERICS"]
 np.random.seed(0)  # fix seed for reproducibility
 
 
@@ -33,10 +33,7 @@ def calculate_changes(s_dict, relative=False, season=None, onshore=False, monthl
     season: None (i.e., year-round), "DJF", "MAM", "JJA", "SON"
     """
     df_list = []
-    tmp_institutions = institutions
-    if onshore:
-        tmp_institutions = ["IDL", "GERICS"]
-    for institution in tmp_institutions:
+    for institution in institutions:
         ds_tmp = s_dict[institution]
         if onshore:
             ds_tmp = restrict_to_land(ds_tmp, monthly)
@@ -107,62 +104,6 @@ def compute_mean_onshore_surface_change(s_dict):
 ##########################################
 # Maps for different heights
 ##########################################
-def plot_maps_per_height(s_dict, season=None):
-    for ins in institutions:
-        vertical_dim = vertical_dim_dic[ins]
-        N_vertical = s_dict[ins][vertical_dim].size
-        f, ax = plt.subplots(N_vertical, 3, figsize=(9, N_vertical * 3))
-        if season:
-            title_name = ins + ": " + season
-        else:
-            title_name = ins + ": full year"
-        plt.suptitle(title_name)
-        for N in range(N_vertical):
-            s_GRASS = (
-                s_dict[ins].isel({vertical_dim: N}).sel({"experiment": "GRASS"})["S"]
-            )
-            s_FOREST = (
-                s_dict[ins].isel({vertical_dim: N}).sel({"experiment": "FOREST"})["S"]
-            )
-            if season:
-                s_GRASS = (
-                    s_GRASS.groupby("time.season").mean(dim="time").sel(season=season)
-                )
-                s_FOREST = (
-                    s_FOREST.groupby("time.season").mean(dim="time").sel(season=season)
-                )
-            else:
-                s_GRASS = s_GRASS.mean("time")
-                s_FOREST = s_FOREST.mean("time")
-
-            s_GRASS.plot(ax=ax[N, 0], levels=15, vmin=1, vmax=15)
-            s_FOREST.plot(ax=ax[N, 1], levels=15, vmin=1, vmax=15)
-            s_diff = s_GRASS - s_FOREST
-            s_diff.plot(
-                ax=ax[N, 2], levels=7, vmin=0, vmax=3, extend="max", cmap="Blues"
-            )
-            if ins != "IDL":
-                ax[N, 0].set_ylabel(str(s_GRASS[vertical_dim].values))
-            else:
-                ax[N, 0].set_ylabel(str(N))  # this is IDL which only counts its levels
-            ax[N, 1].set_ylabel("")
-            ax[N, 2].set_ylabel("")
-        for ax_tmp in ax.flatten():
-            ax_tmp.set_xlabel("")
-            # ax_tmp.set_ylabel("")
-            ax_tmp.set_title("")
-        ax[0, 0].set_title("GRASS")
-        ax[0, 1].set_title("FOREST")
-        ax[0, 2].set_title("GRASS-FOREST")
-        figname = "Diff_maps_" + ins + ".jpeg"
-        if season:
-            figname = "Diff_maps_" + ins + "_" + season + ".jpeg"
-        plt.savefig(
-            "../plots/exploration/absolute_differences/" + figname,
-            dpi=300,
-        )
-
-
 def plot_maps_per_height_paper(s_dict, season=None):
     for ins in ["IDL", "GERICS"]:
         vertical_dim = vertical_dim_dic[ins]
@@ -496,36 +437,6 @@ def plot_decay_quantiles_all(s_dict):
     plt.savefig(plot_path(relative=False) + "/Signal_decay_quantiles_all.jpeg", dpi=600)
 
 
-def plot_signal_decay_distributions(s_dict, relative, onshore=False, monthly=True):
-    """
-    Aggregated  distributions
-    """
-    df = calculate_changes(
-        s_dict=s_dict, relative=relative, onshore=onshore, monthly=monthly
-    )
-    f, ax = plt.subplots(figsize=(12, 4))
-    sns.violinplot(
-        data=df.reset_index(),
-        x="height",
-        y="S",
-        hue="institution",
-        alpha=0.8,
-        linewidth=0.1,
-        width=1.5,
-        inner="quartile",
-    )
-    ax.set_ylim(ymax=5, ymin=-1.0)
-    ax.set_xlim(xmax=15.5, xmin=-1.5)
-    ax.set_ylabel("GRASS - FOREST normalized with mean lowest level")
-    figname = "Signal_decay_distributions"
-    if onshore:
-        figname += "_onshore"
-    plt.savefig(
-        plot_path(relative) + figname + ".jpeg",
-        dpi=300,
-    )
-
-
 def plot_signal_decay_mean_log(s_dict, relative=False, onshore=False, monthly=True):
     df = calculate_changes(
         s_dict=s_dict, relative=relative, onshore=onshore, monthly=monthly
@@ -678,40 +589,6 @@ def plot_signal_decay_mean_log(s_dict, relative=False, onshore=False, monthly=Tr
     )
 
 
-def plot_boxplots_per_model(s_dict, relative, season=None, monthly=True, onshore=False):
-    df = calculate_changes(
-        s_dict=s_dict,
-        relative=relative,
-        season=season,
-        monthly=monthly,
-        onshore=onshore,
-    )
-    f, axs = plt.subplots(ncols=len(institutions), sharey=True, figsize=(14, 4))
-    for i, institution in enumerate(institutions):
-        df_tmp = df[df.institution == institution]
-        sns.boxplot(data=df_tmp, x=df_tmp.index, y="S", ax=axs[i], orient="v")
-        if relative:
-            axs[i].set_ylim(ymax=5, ymin=-2.5)
-        else:
-            axs[i].set_ylim(ymax=2.5, ymin=-0.5)
-        axs[i].set_title(institution)
-        axs[i].set_xlabel("Approximate height [m]")
-        axs[i].axhline(y=0, ls="--", color="firebrick")
-    if relative:
-        axs[0].set_ylabel("GRASS - FOREST normalized with mean lowest level")
-    else:
-        axs[0].set_ylabel("GRASS - FOREST [m/s]")
-    figname = "Signal_decay_boxplot_per_model"
-    if season:
-        figname = "Signal_decay_boxplot_per_model_" + season
-    if onshore:
-        figname += "_onshore"
-    plt.savefig(
-        plot_path(relative) + figname + ".jpeg",
-        dpi=300,
-    )
-
-
 if __name__ == "__main__":
     # Execute a lot of plots
     s_dict = load_monthly_data_dictionary()
@@ -722,5 +599,4 @@ if __name__ == "__main__":
     s_dict["GERICS"] = s_dict["GERICS"].isel(rlat=slice(0, -1), rlon=slice(0, -1))
     stats_per_height(s_dict)
     plot_decay_quantiles_all(s_dict)
-    plot_signal_decay_distributions(s_dict, onshore=True, relative=True)
     plot_signal_decay_mean_log(s_dict, relative=True, onshore=True)
