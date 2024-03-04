@@ -73,3 +73,9 @@ Below you find an overview of the paper and supplementary Figures and how they a
 |S12|	Profile_Spain_paper.jpeg	|analyze_subdaily.plot_profile_subdaily()
 |S13|	Profile_Sweden_paper.jpeg	|analyze_subdaily.plot_profile_subdaily()
 |S14|	Mean_CF_change_relative_diff_maps.png	|analyze_generation.plot_relative_change()
+
+## Reference
+
+The power curve of the SWT120-3600 wind turbine (`output/final_power_curve_1.p`) was taken from the windpowerlib:
+
+Haas, S., Schachler, B. & Krien, U. Windpowerlib - a Python Library to Model Wind Power Plants—v.0.2.0. Zenodo (2019) doi:https://doi.org/10.5281/zenodo.3403360.
