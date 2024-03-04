@@ -30,7 +30,10 @@ def select_month(ds, month):
 
 
 for experiment in ["FOREST", "GRASS"]:
-    for institution in ["BCCR", "GERICS", "ETH", "IDL", "OUR"]:
+    for institution in [
+        "GERICS",
+        "IDL",
+    ]:
         print(institution)
         ds = xr.open_mfdataset(data_dir + institution + "/" + experiment + "/S/*.nc")
         if institution == "GERICS":
