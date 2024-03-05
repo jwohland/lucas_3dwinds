@@ -76,6 +76,6 @@ Below you find an overview of the paper and supplementary Figures and how they a
 
 ## Reference
 
-The power curve of the SWT120-3600 wind turbine (`output/final_power_curve_1.p`) was taken from the windpowerlib:
+The power curve of the SWT120-3600 wind turbine (`output/final_power_curve_1.p`) is based on the windpowerlib:
 
 Haas, S., Schachler, B. & Krien, U. Windpowerlib - a Python Library to Model Wind Power Plants—v.0.2.0. Zenodo (2019) doi:https://doi.org/10.5281/zenodo.3403360.
