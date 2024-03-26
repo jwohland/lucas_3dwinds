@@ -8,7 +8,7 @@ Please reference above  publication if you decide to use (parts of) this code fo
 
 ## How to run it?
 
-### Install the anaconda environment and activate it
+### 1) Install the anaconda environment and activate it
 
 You can create the conda environment by running
 
@@ -18,9 +18,15 @@ Next, you can activate it with
 
 > conda activate lucas_3dwinds
 
-If you are not running on Linux, the above comment might be sligthly different).
+If you are not running on Linux, the above comment might be sligthly different.
 
-### Executing all scripts
+#### 1b) Environment mit pinned versions (you do not need to use it. It's here for completeness)
+
+We also provide an environment with details about the specific versions that have been used and including additional packages that UNIX installed on our machine when creating the environment as defined above.
+This environment is called `lucas_3dwinds_pinned_unix.yml` and we provide it in case there will be confusing stemming from package versioning. Please note that you will generally not be successful when recreating an environment from this yml with pinned versions. We refer to the Conda documentation [1] for further explanation. Basically, `lucas_3dwinds.yaml` follows the recommendations to export an environment file across platforms and is slimmed down while `lucas_3dwinds_pinned_unix.yml` provides all dependecies and pinned packages, and proves difficult to use on different systems. 
+
+
+### 2) Executing all scripts
 Running the full analysis is as easy as this: Activate the environment, go the `code` folder and then run
 
 > bash main.sh
@@ -79,3 +85,5 @@ Below you find an overview of the paper and supplementary Figures and how they a
 The power curve of the SWT120-3600 wind turbine (`output/final_power_curve_1.p`) is based on the windpowerlib:
 
 Haas, S., Schachler, B. & Krien, U. Windpowerlib - a Python Library to Model Wind Power Plants—v.0.2.0. Zenodo (2019) doi:https://doi.org/10.5281/zenodo.3403360.
+
+[1] https://conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html#exporting-an-environment-file-across-platforms
