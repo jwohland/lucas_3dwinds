@@ -2,7 +2,7 @@
 
 To enhance reproducibility and transparency in scientific publishing, we here provide the code that is used in 
 
-Wohland, J., Hoffmann, P., Lima, D. C. A., Breil, M., Asselin, O., and Rechid, D.: Extrapolation is not enough: Impacts of extreme land-use change on wind profiles and wind energy according to regional climate models, EGUsphere [preprint], https://doi.org/10.5194/egusphere-2023-2533, 2023.
+Wohland, J., Hoffmann, P., Lima, D. C. A., Breil, M., Asselin, O., and Rechid, D.: Extrapolation is not enough: Impacts of extreme land-use change on wind profiles and wind energy according to regional climate models, Earth System Dynamics (Accepted), https://doi.org/10.5194/egusphere-2023-2533, 2023.
 
 Please reference above  publication if you decide to use (parts of) this code for your own work.
 
